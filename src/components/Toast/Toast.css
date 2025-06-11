@@ -1,0 +1,12 @@
+:root {
+  --toast-animation-enter-duration: 100ms;
+  --toast-animation-exit-duration: 0ms;
+}
+
+.toast-enter {
+  transform: translateX(100%);
+}
+.toast-enter-active {
+  transform: translateX(0);
+  transition: transform var(--toast-animation-enter-duration) ease-in-out;
+}
