@@ -8,7 +8,7 @@ import {
   ModalsContextType,
   ValidatedInputState,
 } from '../../types';
-import { paths, operations, components } from '../../openapi_schema';
+import { paths, operations, components } from '../../openapi_schema_client';
 import { Button2, ButtonSubmit } from '../Utils/Button';
 import { Surface } from '../Utils/Surface';
 import { CheckOrX } from '../Form/CheckOrX';

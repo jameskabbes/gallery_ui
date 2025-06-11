@@ -4,14 +4,13 @@ import {
   ValidatedInputState,
   defaultValidatedInputState,
 } from '../../types';
-import { paths, operations, components } from '../../openapi_schema';
+import { paths, operations, components } from '../../openapi_schema_client';
 import { postGallery, getIsGalleryAvailable } from '../../services/apiServices';
 
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { ButtonSubmit } from '../Utils/Button';
-import openapi_schema from '../../../../openapi_schema.json';
 import { RadioButton1 } from '../Utils/RadioButton';
 import { useValidatedInput } from '../../utils/useValidatedInput';
 import { CheckOrX } from '../Form/CheckOrX';
@@ -145,16 +144,16 @@ export function AddGallery({
               id="gallery-name"
               type="text"
               minLength={
-                openapi_schema.components.schemas.GalleryCreate.properties.name
-                  .minLength
+                config.openapiSchema.components.schemas.GalleryCreate.properties
+                  .name.minLength
               }
               maxLength={
-                openapi_schema.components.schemas.GalleryCreate.properties.name
-                  .maxLength
+                config.openapiSchema.components.schemas.GalleryCreate.properties
+                  .name.maxLength
               }
               pattern={
-                openapi_schema.components.schemas.GalleryCreate.properties.name
-                  .pattern
+                config.openapiSchema.components.schemas.GalleryCreate.properties
+                  .name.pattern
               }
               required={true}
               checkValidity={true}

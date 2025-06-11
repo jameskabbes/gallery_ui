@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../contexts/Auth';
-import openapi_schema from '../../../../openapi_schema.json';
+import { config } from '../../config/config';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { LogInContext } from '../../contexts/LogIn';
 import { ToastContext } from '../../contexts/Toast';
@@ -124,10 +124,10 @@ export function LogIn() {
                 id="login-username"
                 minLength={1}
                 maxLength={Math.max(
-                  openapi_schema.components.schemas.UserAdminCreate.properties
-                    .email.maxLength,
-                  openapi_schema.components.schemas.UserPrivate.properties
-                    .username.anyOf[0].maxLength
+                  config.openapiSchema.components.schemas.UserAdminCreate
+                    .properties.email.maxLength,
+                  config.openapiSchema.components.schemas.UserAdminCreate
+                    .properties.username.anyOf[0]?.maxLength ?? 0
                 )}
                 type="text"
                 checkValidity={true}
@@ -150,12 +150,12 @@ export function LogIn() {
                 setState={logInContext.setPassword}
                 id="login-password"
                 minLength={
-                  openapi_schema.components.schemas.UserAdminCreate.properties
-                    .password.anyOf[0].minLength
+                  config.openapiSchema.components.schemas.UserAdminCreate
+                    .properties.password.anyOf[0]?.minLength
                 }
                 maxLength={
-                  openapi_schema.components.schemas.UserAdminCreate.properties
-                    .password.anyOf[0].maxLength
+                  config.openapiSchema.components.schemas.UserAdminCreate
+                    .properties.password.anyOf[0]?.maxLength
                 }
                 type="password"
                 checkValidity={true}

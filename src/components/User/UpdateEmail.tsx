@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { paths, operations, components } from '../../openapi_schema';
-import openapi_schema from '../../../../openapi_schema.json';
+import { paths, operations, components } from '../../openapi_schema_client';
+import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
 import { isEmailValid } from '../../services/isEmailValid';
@@ -79,12 +79,12 @@ export function UpdateEmail({ user }: Props) {
             id="email"
             type="email"
             minLength={
-              openapi_schema.components.schemas.UserUpdate.properties.email
-                .anyOf[0].minLength
+              config.openapiSchema.components.schemas.UserUpdate.properties
+                .email.anyOf[0]?.minLength
             }
             maxLength={
-              openapi_schema.components.schemas.UserUpdate.properties.email
-                .anyOf[0].maxLength
+              config.openapiSchema.components.schemas.UserUpdate.properties
+                .email.anyOf[0]?.maxLength
             }
             checkValidity={true}
             isValid={isEmailValid}

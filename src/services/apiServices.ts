@@ -1,4 +1,4 @@
-import { paths } from '../openapi_schema';
+import { paths } from '../openapi_schema_client';
 import { createApiService, ResponseDataTypeByStatusCode } from '../utils/api';
 
 // Auth

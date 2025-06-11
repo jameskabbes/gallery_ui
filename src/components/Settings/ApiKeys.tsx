@@ -12,7 +12,7 @@ import {
   GetElementTypeFromArray,
 } from '../../types';
 import { useApiCall } from '../../utils/api';
-import { paths, operations, components } from '../../openapi_schema';
+import { paths, operations, components } from '../../openapi_schema_client';
 import {
   deleteApiKey,
   postApiKey,
@@ -23,12 +23,10 @@ import {
   patchApiKey,
   getApiKeysSettingsPage,
 } from '../../services/apiServices';
-
 import { ModalsContext } from '../../contexts/Modals';
 import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { IoCaretForward } from 'react-icons/io5';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
-import openapi_schema from '../../../../openapi_schema.json';
 import { ValidatedInputDatetimeLocal } from '../Form/ValidatedInputDatetimeLocal';
 import { Button1, Button2, ButtonSubmit } from '../Utils/Button';
 import { Card1, CardButton } from '../Utils/Card';
@@ -248,12 +246,12 @@ function UpdateApiKey({
             }}
             checkAvailability={true}
             minLength={
-              openapi_schema.components.schemas.ApiKeyCreate.properties.name
-                .minLength
+              config.openapiSchema.components.schemas.ApiKeyCreate.properties
+                .name.minLength
             }
             maxLength={
-              openapi_schema.components.schemas.ApiKeyCreate.properties.name
-                .maxLength
+              config.openapiSchema.components.schemas.ApiKeyCreate.properties
+                .name.maxLength
             }
             required={true}
             checkValidity={true}
@@ -411,12 +409,12 @@ function AddApiKey({
               id="api-key-name"
               type="text"
               minLength={
-                openapi_schema.components.schemas.ApiKeyCreate.properties.name
-                  .minLength
+                config.openapiSchema.components.schemas.ApiKeyCreate.properties
+                  .name.minLength
               }
               maxLength={
-                openapi_schema.components.schemas.ApiKeyCreate.properties.name
-                  .maxLength
+                config.openapiSchema.components.schemas.ApiKeyCreate.properties
+                  .name.maxLength
               }
               required={true}
               checkValidity={true}

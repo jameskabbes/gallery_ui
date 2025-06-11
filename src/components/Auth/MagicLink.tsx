@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AuthModalType, RequestMagicLinkContextType } from '../../types';
-import openapi_schema from '../../../../openapi_schema.json';
+import { config } from '../../config/config';
 
 import { AuthContext } from '../../contexts/Auth';
 import { AuthModalsContext } from '../../contexts/AuthModals';
@@ -101,11 +101,11 @@ export function RequestMagicLink() {
                     setState={requestMagicLinkContext.setEmail}
                     id="request-magic-link-email"
                     minLength={
-                      openapi_schema.components.schemas
+                      config.openapiSchema.components.schemas
                         .RequestMagicLinkEmailRequest.properties.email.minLength
                     }
                     maxLength={
-                      openapi_schema.components.schemas
+                      config.openapiSchema.components.schemas
                         .RequestMagicLinkEmailRequest.properties.email.maxLength
                     }
                     type="email"

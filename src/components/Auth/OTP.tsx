@@ -8,6 +8,7 @@ import {
   RequestOTPContextType,
   ValidatedInputState,
 } from '../../types';
+import { config } from '../../config/config';
 
 import {
   postLogInOTPPhoneNumber,
@@ -16,7 +17,6 @@ import {
   postLogInOTPEmail,
 } from '../../services/apiServices';
 import { Button2, ButtonSubmit } from '../Utils/Button';
-import openapi_schema from '../../../../openapi_schema.json';
 import { isEmailValid } from '../../services/isEmailValid';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { ValidatedInputPhoneNumber } from '../Form/ValidatedInputPhoneNumber';
@@ -94,12 +94,12 @@ export function RequestOTP() {
                   setState={requestOTPContext.setEmail}
                   id="request-otp-email"
                   minLength={
-                    openapi_schema.components.schemas.LoginWithOTPEmailRequest
-                      .properties.email.minLength
+                    config.openapiSchema.components.schemas
+                      .LoginWithOTPEmailRequest.properties.email.minLength
                   }
                   maxLength={
-                    openapi_schema.components.schemas.LoginWithOTPEmailRequest
-                      .properties.email.maxLength
+                    config.openapiSchema.components.schemas
+                      .LoginWithOTPEmailRequest.properties.email.maxLength
                   }
                   type="email"
                   checkValidity={true}
@@ -173,12 +173,12 @@ export function VerifyOTP() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const pattern = new RegExp(
-    openapi_schema.components.schemas.LoginWithOTPEmailRequest.properties.code.pattern
+    config.openapiSchema.components.schemas.LoginWithOTPEmailRequest.properties.code.pattern
   );
 
   const nCharacters =
-    openapi_schema.components.schemas.LoginWithOTPEmailRequest.properties.code
-      .maxLength;
+    config.openapiSchema.components.schemas.LoginWithOTPEmailRequest.properties
+      .code.maxLength;
 
   function setControlledCursorIndex(index: number, codeValueLength: number) {
     if (index < 0) {
@@ -198,8 +198,8 @@ export function VerifyOTP() {
     minLength: nCharacters,
     maxLength: nCharacters,
     pattern:
-      openapi_schema.components.schemas.LoginWithOTPEmailRequest.properties.code
-        .pattern,
+      config.openapiSchema.components.schemas.LoginWithOTPEmailRequest
+        .properties.code.pattern,
   });
 
   useEffect(() => {

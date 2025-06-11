@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { paths, operations, components } from '../../openapi_schema';
+import { paths, operations, components } from '../../openapi_schema_client';
 
 import { postSignUp, postRequestSignUp } from '../../services/apiServices';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import openapi_schema from '../../../../openapi_schema.json';
+import { config } from '../../config/config';
 
 import { RequestSignUpContext } from '../../contexts/RequestSignUp';
 import { AuthContext } from '../../contexts/Auth';
@@ -101,12 +101,12 @@ export function RequestSignUp() {
                   setState={requestSignUpContext.setEmail}
                   id="sign-up-email"
                   minLength={
-                    openapi_schema.components.schemas.RequestSignUpEmailRequest
-                      .properties.email.minLength
+                    config.openapiSchema.components.schemas
+                      .RequestSignUpEmailRequest.properties.email.minLength
                   }
                   maxLength={
-                    openapi_schema.components.schemas.RequestSignUpEmailRequest
-                      .properties.email.maxLength
+                    config.openapiSchema.components.schemas
+                      .RequestSignUpEmailRequest.properties.email.maxLength
                   }
                   type="email"
                   checkValidity={true}

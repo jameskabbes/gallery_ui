@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { ValidatedInputState, defaultValidatedInputState } from '../../types';
-import openapi_schema from '../../../../openapi_schema.json';
+import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
-import { components } from '../../openapi_schema';
+import { components } from '../../openapi_schema_client';
 import { ToastContext } from '../../contexts/Toast';
 import { patchMe } from '../../services/apiServices';
 import { Button1 } from '../Utils/Button';
@@ -91,12 +91,12 @@ export function UpdatePassword() {
           setState={setPassword}
           id="password"
           minLength={
-            openapi_schema.components.schemas.UserUpdate.properties.password
-              .anyOf[0].minLength
+            config.openapiSchema.components.schemas.UserUpdate.properties
+              .password.anyOf[0]?.minLength
           }
           maxLength={
-            openapi_schema.components.schemas.UserUpdate.properties.password
-              .anyOf[0].maxLength
+            config.openapiSchema.components.schemas.UserUpdate.properties
+              .password.anyOf[0]?.maxLength
           }
           type="password"
           isValid={isPasswordValid}

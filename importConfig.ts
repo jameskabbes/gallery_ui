@@ -1,4 +1,6 @@
 import { Config, SharedConfig, FrontendConfig } from './src/types';
+import { OpenapiSchema } from './src/openapi_schema';
+
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
@@ -125,6 +127,15 @@ function loadFrontendConfig(): FrontendConfig {
 
 const frontendConfig = loadFrontendConfig();
 
+const openapiSchemaPath = convertEnvPathToAbsolute(
+  process.cwd(),
+  frontendConfig.OPENAPI_SCHEMA_PATH
+);
+
+const openapiSchema: OpenapiSchema = JSON.parse(
+  fs.readFileSync(openapiSchemaPath, 'utf8')
+);
+
 export const importedConfig: Config = {
   backendUrl: sharedConfig.BACKEND_URL,
   frontendUrl: sharedConfig.FRONTEND_URL,
@@ -165,8 +176,6 @@ export const importedConfig: Config = {
   otpLength: sharedConfig.OTP_LENGTH,
   googleClientId: sharedConfig.GOOGLE_CLIENT_ID,
   vite: frontendConfig.VITE,
-  openapiSchemaPath: convertEnvPathToAbsolute(
-    process.cwd(),
-    frontendConfig.OPENAPI_SCHEMA_PATH
-  ),
+  openapiSchemaPath: openapiSchemaPath,
+  openapiSchema: openapiSchema,
 };

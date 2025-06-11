@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { DeviceContext } from '../contexts/Device';
-import { paths, operations, components } from '../openapi_schema';
+import { paths, operations, components } from '../openapi_schema_client';
 import {
   defaultValidatedInputState,
   ModalType,

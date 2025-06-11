@@ -5,7 +5,7 @@ import { ToastContext } from '../contexts/Toast';
 import { Appearance } from '../components/Settings/Appearance';
 import { UserAccessTokens } from '../components/Settings/UserAccessTokens';
 import { Profile } from '../components/Settings/Profile';
-import { paths, operations, components } from '../openapi_schema';
+import { paths, operations, components } from '../openapi_schema_client';
 
 import { IoBrush } from 'react-icons/io5';
 import { IoRadioOutline } from 'react-icons/io5';

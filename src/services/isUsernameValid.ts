@@ -1,5 +1,4 @@
 import validator from 'validator';
-import openapi_schema from '../../../openapi_schema.json';
 import { ValidatedInputCheckValidityReturn } from '../utils/useValidatedInput';
 
 export function isUsernameValid(

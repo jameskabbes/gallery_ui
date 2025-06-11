@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContextType, ToastContextType } from '../../types';
 import { useApiCall } from '../../utils/api';
-import { paths, operations, components } from '../../openapi_schema';
+import { paths, operations, components } from '../../openapi_schema_client';
 import {
   deleteUserAccessToken,
   getUserAccessTokensSettingsPage,
 } from '../../services/apiServices';
+import { config } from '../../config/config';
 import { Card1 } from '../Utils/Card';
 import { Button1 } from '../Utils/Button';
 import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { Loader1 } from '../Utils/Loader';
 import { useLocation, useNavigate } from 'react-router-dom';
-import openapi_schema from '../../../../openapi_schema.json';
 import { Pagination } from '../Utils/Pagination';
 
 interface Props {
@@ -37,7 +37,9 @@ export function UserAccessTokens({
   type ParamKey = keyof Params;
 
   const queryParameters =
-    openapi_schema['paths']['/pages/settings/api-keys/']['get']['parameters'];
+    config.openapiSchema.paths['/pages/settings/api-keys/']['get'][
+      'parameters'
+    ];
 
   const queryParamObjects: Record<ParamKey, any> = queryParameters.reduce(
     (acc, param) => {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
-import openapi_schema from '../../../../openapi_schema.json';
+import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
-import { components } from '../../openapi_schema';
+import { components } from '../../openapi_schema_client';
 import {
   patchMe,
   getIsApiKeyAvailable,
@@ -106,12 +106,12 @@ export function UpdateUsername({ user }: Props) {
             id="username"
             type="text"
             minLength={
-              openapi_schema.components.schemas.UserUpdate.properties.username
-                .anyOf[0].minLength
+              config.openapiSchema.components.schemas.UserUpdate.properties
+                .username.anyOf[0]?.minLength
             }
             maxLength={
-              openapi_schema.components.schemas.UserUpdate.properties.username
-                .anyOf[0].maxLength
+              config.openapiSchema.components.schemas.UserUpdate.properties
+                .username.anyOf[0]?.maxLength
             }
             checkValidity={true}
             checkAvailability={true}
