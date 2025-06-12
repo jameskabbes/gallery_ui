@@ -18,7 +18,7 @@ import { Surface } from '../Utils/Surface';
 type T = E164Number;
 
 export interface ValidatedInputPhoneNumberProps
-  extends UseValidatedInputStringProps,
+  extends UseValidatedInputStringProps<T>,
     InputTextBaseInputProps {
   defaultCountryCode?: CountryCode; // Default country code (e.g., 'US', 'GB')
   showStatus?: boolean;
@@ -66,8 +66,8 @@ export function ValidatedInputPhoneNumber({
     });
 
     // Map and sort country names
-    const sortedCountries = Object.keys(metadata.countries)
-      .map((countryCode: CountryCode) => ({
+    const sortedCountries = (Object.keys(metadata.countries) as CountryCode[])
+      .map((countryCode) => ({
         code: countryCode,
         name: displayNames.of(countryCode) || countryCode,
       }))
@@ -80,7 +80,6 @@ export function ValidatedInputPhoneNumber({
     const formatter = new AsYouType(selectedCountryCode);
 
     const a = formatter.input(displayProposedChange);
-    setDisplay(a);
 
     const phoneNumber = parsePhoneNumberFromString(
       displayProposedChange,
@@ -119,8 +118,10 @@ export function ValidatedInputPhoneNumber({
               {countryOptions.map((countryOption) => {
                 return (
                   <option key={countryOption.code} value={countryOption.code}>
-                    (+{metadata.countries[countryOption.code][0]}){' '}
-                    {countryOption.name}
+                    (+
+                    {metadata.countries &&
+                      metadata.countries[countryOption.code]}
+                    ) {countryOption.name}
                   </option>
                 );
               })}
@@ -129,7 +130,11 @@ export function ValidatedInputPhoneNumber({
 
           <InputTextBase
             value={display}
-            setValue={(value: string) => setDisplayProposedChange(value)}
+            setValue={(value) => {
+              if (value !== undefined) {
+                setDisplayProposedChange(String(value));
+              }
+            }}
             className={'dark:[color-scheme:dark]' + className}
             {...rest}
           />

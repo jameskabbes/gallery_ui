@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-type InputTextBaseInputProps = Omit<
+export type InputTextBaseInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   'onChange'
 >;

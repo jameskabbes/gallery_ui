@@ -30,7 +30,7 @@ export function useValidatedInput<T>({
   isValid = (value) => ({ valid: true }),
   isAvailable = async (value) => true,
 }: UseValidatedInputProps<T>) {
-  const debounceTimeout = useRef(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (checkValidity) {
@@ -38,7 +38,7 @@ export function useValidatedInput<T>({
       setState((prev) => ({
         ...prev,
         status: valid ? 'valid' : 'invalid',
-        error: valid ? null : message,
+        error: valid ? null : message === undefined ? null : message,
       }));
 
       // if the value is not valid, cancel pending request, return immediately
@@ -80,8 +80,8 @@ export function useValidatedInput<T>({
   }, [state.value]);
 }
 
-export interface UseValidatedInputStringProps
-  extends UseValidatedInputProps<string> {
+export interface UseValidatedInputStringProps<T = string>
+  extends UseValidatedInputProps<T> {
   minLength?: React.InputHTMLAttributes<HTMLInputElement>['minLength'];
   maxLength?: React.InputHTMLAttributes<HTMLInputElement>['minLength'];
   pattern?: React.InputHTMLAttributes<HTMLInputElement>['pattern'];
@@ -109,7 +109,7 @@ export function useValidatedInputString({
         message: `Must be at most ${maxLength} characters`,
       };
     }
-    if (pattern && !regexPattern.test(value)) {
+    if (regexPattern && !regexPattern.test(value)) {
       return {
         valid: false,
         message: `Invalid format`,

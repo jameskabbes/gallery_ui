@@ -3,14 +3,23 @@ import {
   RequestMagicLinkContextType,
   defaultValidatedInputState,
 } from '../types';
+import { E164Number } from 'libphonenumber-js';
 
 export const RequestMagicLinkContext =
   createContext<RequestMagicLinkContextType>({
-    medium: null,
+    medium: 'email',
     setMedium: () => {},
-    email: null,
+    email: {
+      ...defaultValidatedInputState<
+        RequestMagicLinkContextType['email']['value']
+      >(''),
+    },
     setEmail: () => {},
-    phoneNumber: null,
+    phoneNumber: {
+      ...defaultValidatedInputState<
+        RequestMagicLinkContextType['phoneNumber']['value']
+      >('' as E164Number),
+    },
     setPhoneNumber: () => {},
     valid: false,
     setValid: () => {},
@@ -35,7 +44,7 @@ export function RequestMagicLinkContextProvider({
   >({
     ...defaultValidatedInputState<
       RequestMagicLinkContextType['phoneNumber']['value']
-    >(null),
+    >('' as E164Number),
   });
   const [valid, setValid] =
     useState<RequestMagicLinkContextType['valid']>(false);

@@ -20,6 +20,7 @@ import { ModalsContext } from '../../contexts/Modals';
 import { AuthModalType } from '../../types';
 import { useLogInWithGoogle } from './useLogInWithGoogle';
 import { ValidatedInputToggle } from '../Form/ValidatedInputToggle';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 export function LogIn() {
   const logInContext = useContext(LogInContext);
@@ -58,32 +59,33 @@ export function LogIn() {
     if (logInContext.valid) {
       logInContext.setLoading(true);
 
-      const { data, status } = await postLogInPassword.call({
-        authContext,
-        data: {
-          username: logInContext.username.value,
-          password: logInContext.password.value,
-          stay_signed_in: logInContext.staySignedIn.value,
-        },
-      });
+      const { data, error, response } = updateAuthFromFetchResponse(
+        await postLogInPassword({
+          body: {
+            username: logInContext.username.value,
+            password: logInContext.password.value,
+            stay_signed_in: logInContext.staySignedIn.value,
+            scope: '',
+          },
+        }),
+        authContext
+      );
 
       logInContext.setLoading(false);
 
-      type PostLogInPasswordResponses = typeof postLogInPassword.responses;
-      if (status == 200) {
-        const apiData = data as PostLogInPasswordResponses['200'];
+      if (data !== undefined) {
         modalsContext.deleteModals([key]);
         toastContext.make({
           message: `Welcome ${
-            apiData.auth.user.username === null
-              ? apiData.auth.user.email
-              : apiData.auth.user.username
+            data.auth.user !== null
+              ? data.auth.user.username ?? data.auth.user.email
+              : ''
           }`,
           type: 'success',
         });
-      } else if (status == 401) {
-        const apiData = data as PostLogInPasswordResponses['401'];
-        logInContext.setError(apiData.detail);
+      } else if (error !== undefined) {
+        console.log(error);
+        logInContext.setError('could not log in');
       } else {
         logInContext.setError('Could not log in');
       }

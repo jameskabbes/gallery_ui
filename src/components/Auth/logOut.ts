@@ -1,5 +1,6 @@
 import { postLogOut } from '../../services/apiServices';
 import { AuthContextType, ToastContextType } from '../../types';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 export async function logOut(
   authContext: AuthContextType,
@@ -8,10 +9,12 @@ export async function logOut(
   let toastId = toastContext.makePending({
     message: 'Logging out...',
   });
-  const response = await postLogOut.call({
-    authContext,
-  });
-  if (response.status === 200) {
+  const { response, data, error } = updateAuthFromFetchResponse(
+    await postLogOut(),
+    authContext
+  );
+
+  if (error === undefined) {
     authContext.logOut(toastId);
   } else {
     toastContext.update(toastId, {
