@@ -2,7 +2,7 @@ import React, { useEffect, useContext, useState, Children } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DeviceContext } from '../contexts/Device';
 import { paths, operations, components } from '../openapi_schema_client';
-import { useApiCall } from '../utils/api';
+import { updateAuthFromFetchResponse, useApiCall } from '../utils/api';
 import { ModalsContext } from '../contexts/Modals';
 import { AuthContext } from '../contexts/Auth';
 import { Button1 } from '../components/Utils/Button';
@@ -20,6 +20,7 @@ import { getGalleryLink } from '../components/Gallery/getLink';
 import { Link } from 'react-router-dom';
 import { ToastContext } from '../contexts/Toast';
 import { config } from '../config/config';
+import { get } from 'http';
 
 interface Props {
   root?: boolean;
@@ -31,21 +32,19 @@ export function Gallery({ root = false }: Props) {
   const toastContext = useContext(ToastContext);
   const navigate = useNavigate();
 
-  const galleryId: components['schemas']['GalleryPrivate']['id'] =
+  const galleryId: components['schemas']['GalleryPrivate']['id'] | undefined =
     useParams().galleryId;
 
-  const { data, loading, status, refetch } = useApiCall(
+  const { data, loading, response, refetch } = useApiCall(
     getGalleryPage,
+    [galleryId],
     {
-      authContext,
-      pathParams: {
-        gallery_id: galleryId,
-      },
       params: {
-        root: root,
+        path: {
+          gallery_id: galleryId === undefined ? null : galleryId,
+        },
       },
-    },
-    [galleryId]
+    }
   );
 
   async function handleSyncGallery(
@@ -56,24 +55,30 @@ export function Gallery({ root = false }: Props) {
         gallery.name
       }`,
     });
-    const response = await postGallerySync.call({
-      pathParams: {
-        gallery_id: gallery.id,
-      },
-    });
-    if (response.status === 200) {
+
+    const { data, error, response } = updateAuthFromFetchResponse(
+      await postGallerySync({
+        params: {
+          path: {
+            gallery_id: gallery.id,
+          },
+        },
+      }),
+      authContext
+    );
+
+    if (data !== undefined) {
       toastContext.update(toastId, {
         message: 'Gallery synced with local',
         type: 'success',
       });
-      refetch();
-    } else {
+    } else if (error !== undefined) {
       toastContext.update(toastId, {
         message: 'Error syncing gallery with local',
         type: 'error',
       });
-      refetch();
     }
+    refetch();
   }
 
   async function handleDeleteGallery(
@@ -82,19 +87,25 @@ export function Gallery({ root = false }: Props) {
     let toastId = toastContext.makePending({
       message: `Delete gallery ${gallery.date} ${gallery.name}`,
     });
-    const response = await deleteGallery.call({
-      pathParams: {
-        gallery_id: gallery.id,
-      },
-    });
 
-    if (response.status === 204) {
+    const { data, error, response } = updateAuthFromFetchResponse(
+      await deleteGallery({
+        params: {
+          path: {
+            gallery_id: gallery.id,
+          },
+        },
+      }),
+      authContext
+    );
+
+    if (data !== undefined) {
       toastContext.update(toastId, {
         message: 'Gallery deleted',
         type: 'success',
       });
-      navigate(config.frontendRoutes.galleries);
-    } else {
+      navigate(config.frontendRoutes.galleries ?? '/');
+    } else if (error !== undefined) {
       toastContext.update(toastId, {
         message: 'Error deleting gallery',
         type: 'error',
@@ -102,75 +113,75 @@ export function Gallery({ root = false }: Props) {
     }
   }
 
-  if (loading) {
-    return <div>Loading...</div>;
-  } else {
-    if (status === 200) {
-      const apiData = data as (typeof getGalleryPage.responses)['200'];
-      return (
-        <>
-          <div className="flex flex-row space-x-2 ">
-            {apiData.parents.map((gallery, index) => (
-              <span key={gallery.id} className="flex flex-row space-x-2">
-                <Link to={getGalleryLink(gallery.id)}>
-                  <p className="underline" key={gallery.id}>
-                    {gallery.name}
-                  </p>
-                </Link>
-                <p>/</p>
-              </span>
-            ))}
+  return (
+    <>
+      <div className="flex flex-row space-x-2 ">
+        {(data === undefined ? [] : data.parents).map((gallery, index) => (
+          <span key={gallery.id} className="flex flex-row space-x-2">
+            <Link to={getGalleryLink(gallery.id)}>
+              <p className="underline" key={gallery.id}>
+                {gallery.name}
+              </p>
+            </Link>
+            <p>/</p>
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-row justify-between items-center">
+        <h1>{data === undefined ? 'Gallery' : data.gallery.name}</h1>
+        <Button1
+          disabled={data === undefined}
+          onClick={() =>
+            data !== undefined &&
+            setAddGalleryModal({
+              modalsContext,
+              onSuccess: (gallery) => {
+                refetch();
+              },
+              parentGalleryId: data.gallery.id,
+            })
+          }
+        >
+          Make Gallery
+        </Button1>
+        <Button1
+          disabled={data === undefined}
+          onClick={() =>
+            data !== undefined &&
+            setFileUploaderModal(modalsContext, data.gallery)
+          }
+        >
+          <div className="flex flex-row items-center space-x-2">
+            <IoCloudUploadOutline />
+            Upload Files
           </div>
-          <div className="flex flex-row justify-between items-center">
-            <h1>{apiData.gallery.name}</h1>
-            <Button1
-              onClick={() =>
-                setAddGalleryModal({
-                  modalsContext,
-                  onSuccess: (gallery) => {
-                    refetch();
-                  },
-                  parentGalleryId: apiData.gallery.id,
-                })
-              }
-            >
-              Make Gallery
-            </Button1>
-            <Button1
-              onClick={() =>
-                setFileUploaderModal(modalsContext, apiData.gallery)
-              }
-            >
-              <div className="flex flex-row items-center space-x-2">
-                <IoCloudUploadOutline />
-                Upload Files
-              </div>
-            </Button1>
-            <Button1 onClick={() => handleSyncGallery(apiData.gallery)}>
-              Sync with Local
-            </Button1>
-            <Button1
-              onClick={() => handleDeleteGallery(apiData.gallery)}
-              disabled={apiData.gallery.parent_id === null}
-            >
-              Delete Gallery
-            </Button1>
+        </Button1>
+        <Button1
+          disabled={data === undefined}
+          onClick={() => data !== undefined && handleSyncGallery(data.gallery)}
+        >
+          Sync with Local
+        </Button1>
+        <Button1
+          onClick={() =>
+            data !== undefined && handleDeleteGallery(data.gallery)
+          }
+          disabled={data === undefined || data.gallery.parent_id === null}
+        >
+          Delete Gallery
+        </Button1>
+      </div>
+      <div>
+        {(data === undefined ? [] : data.children).map((gallery) => (
+          <div key={gallery.id}>
+            <Link to={getGalleryLink(gallery.id)}>
+              <p className="underline" key={gallery.id}>
+                {gallery.name}
+              </p>
+            </Link>
           </div>
-          <div>
-            {apiData.children.map((gallery) => (
-              <div key={gallery.id}>
-                <Link to={getGalleryLink(gallery.id)}>
-                  <p className="underline" key={gallery.id}>
-                    {gallery.name}
-                  </p>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </>
-      );
-    } else {
-      return <div>Gallery not found</div>;
-    }
-  }
+        ))}
+      </div>
+    </>
+  );
 }

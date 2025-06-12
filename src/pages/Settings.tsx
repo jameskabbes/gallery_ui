@@ -67,7 +67,7 @@ export function Settings(): JSX.Element {
   const selection = useParams<{ selection: string }>()
     .selection as SelectionComponentKey;
   const [validated, setValidated] = useState(false);
-  const { loading } = useApiCall(getSettingsPage, { authContext });
+  const { loading } = useApiCall(getSettingsPage, []);
 
   useEffect(() => {
     if (!loading) {
@@ -95,8 +95,8 @@ export function Settings(): JSX.Element {
       {validated && (
         <div className="flex-1 max-w-screen-2xl mx-auto w-full px-1">
           <div className="flex flex-row overflow-x-auto space-x-1 py-2">
-            {Object.keys(selectionComponentMapping).map(
-              (key: SelectionComponentKey) => {
+            {Object.keys(selectionComponentMapping).map((key) => {
+              if (key in selectionComponentMapping) {
                 if (
                   authContext.state.user ||
                   !selectionComponentMapping[key].requiresAuth
@@ -122,7 +122,7 @@ export function Settings(): JSX.Element {
                   );
                 }
               }
-            )}
+            })}
           </div>
           <Surface>
             <hr />

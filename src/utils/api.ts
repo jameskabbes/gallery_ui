@@ -1,219 +1,94 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { paths, components } from '../openapi_schema_client';
 import { apiClient } from './apiClient';
-import {
-  CallApiOptions,
-  UseApiCallReturn,
-  ResponseContentType,
-  ResponseStatusCode,
-  ResponseDataTypeByStatusCode,
-  ResponseDataType,
-  ApiService,
-  RequestContentType,
-  RequestDataType,
-  OperationMethodsForPath,
-  PathsWithOperations,
-  ApiServiceCallParams,
-  OpenApiOperationAt,
-} from '../types';
+import { ApiService, AuthContextType } from '../types';
 import { config } from '../config/config';
 import { OpenapiSchema } from '../openapi_schema';
+import {
+  HttpMethod,
+  MediaType,
+  PathsWithMethod,
+} from 'openapi-typescript-helpers';
+import { FetchResponse, MaybeOptionalInit } from 'openapi-fetch';
+import { AuthContext } from '../contexts/Auth';
 
-export async function callApi<TResponseData, TRequestData = any>({
-  url,
-  method,
-  ...rest
-}: CallApiOptions<TRequestData>): Promise<AxiosResponse<TResponseData>> {
-  try {
-    const requestConfig: AxiosRequestConfig = {
-      url,
-      method,
-      ...rest,
-    };
+// Then implement the hook as a const expression
 
-    console.log(method, url);
-    const response = await apiClient.request<TResponseData>(requestConfig);
-
-    return response;
-  } catch (error) {
-    throw error;
+function handleAuthContext<T>(
+  authContext: AuthContextType,
+  headers: FetchResponse<any, any, any>['response']['headers'],
+  data: T
+) {
+  if (authContext && headers.get(config.headerKeys['auth_logout'])) {
+    authContext.logOut();
+  }
+  if (authContext) {
+    authContext.updateFromApiResponse(data);
   }
 }
 
-export function createApiService<
-  TPath extends PathsWithOperations,
-  TMethod extends OperationMethodsForPath<TPath> & AxiosRequestConfig['method'],
-  TResponseContentType extends ResponseContentType<
-    OpenApiOperationAt<TPath, TMethod>
-  > = ResponseContentType<OpenApiOperationAt<TPath, TMethod>>,
-  TResponseStatusCode extends ResponseStatusCode<
-    OpenApiOperationAt<TPath, TMethod>
-  > = ResponseStatusCode<OpenApiOperationAt<TPath, TMethod>>,
-  TResponseDataByStatus extends ResponseDataTypeByStatusCode<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  > = ResponseDataTypeByStatusCode<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  >,
-  TResponseData extends ResponseDataType<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  > = ResponseDataType<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  >,
-  TRequestContentType extends RequestContentType<
-    OpenApiOperationAt<TPath, TMethod>
-  > = RequestContentType<OpenApiOperationAt<TPath, TMethod>>,
-  TRequestData extends RequestDataType<
-    OpenApiOperationAt<TPath, TMethod>,
-    TRequestContentType
-  > = RequestDataType<OpenApiOperationAt<TPath, TMethod>, TRequestContentType>
->(
-  path: TPath,
-  method: TMethod,
-  requestContentType?: TRequestContentType | null,
-  responseContentType?: TResponseContentType | null
-): ApiService<
-  TPath,
-  TMethod,
-  TResponseContentType,
-  TResponseStatusCode,
-  TResponseDataByStatus,
-  TResponseData,
-  TRequestContentType,
-  TRequestData
-> {
-  // default to find the content type from the first request content
-  const operation = config.openapiSchema.paths[
-    path as keyof OpenapiSchema['paths']
-  ][
-    method as keyof OpenapiSchema['paths'][keyof OpenapiSchema['paths']]
-  ] as OpenApiOperationAt<TPath, TMethod>;
-
-  if (!requestContentType) {
-    requestContentType = operation?.requestBody?.content
-      ? (Object.keys(operation.requestBody.content)[0] as TRequestContentType)
-      : null;
+export function updateAuthFromFetchResponse<
+  T extends FetchResponse<any, any, any>
+>(fetchResponse: T, authContext: AuthContextType): T {
+  if (fetchResponse.data !== undefined) {
+    handleAuthContext(
+      authContext,
+      fetchResponse.response.headers,
+      fetchResponse.data
+    );
   }
-
-  // default to find the content type from the first request content
-  if (!responseContentType) {
-    const firstStatusCodeStr = Object.keys(operation.responses)[0];
-    const firstStatusCode = Number(
-      firstStatusCodeStr
-    ) as keyof typeof operation.responses;
-    const firstStatusCodeObject = operation.responses[firstStatusCode];
-    const firstContent = firstStatusCodeObject?.content;
-
-    if (firstContent) {
-      responseContentType = Object.keys(
-        firstContent
-      )[0] as TResponseContentType;
-    } else {
-      responseContentType = null;
-    }
-  }
-
-  const call = async ({
-    pathParams,
-    headers = {},
-    ...rest
-  }: ApiServiceCallParams<
-    TPath,
-    TMethod,
-    TRequestContentType,
-    TRequestData
-  >) => {
-    let url: CallApiOptions<TRequestData>['url'] = path;
-    if (pathParams && typeof pathParams === 'object' && url !== undefined) {
-      for (const key in pathParams) {
-        url = url.replace(
-          `{${key}}`,
-          pathParams[key as keyof typeof pathParams]
-        );
-      }
-    }
-
-    const r = await callApi<TResponseData, TRequestData>({
-      url,
-      method,
-      headers: {
-        ...(requestContentType ? { 'Content-Type': requestContentType } : {}),
-        ...(responseContentType ? { Accept: responseContentType } : {}),
-        ...headers,
-      },
-      ...rest,
-    });
-    return r;
-  };
-
-  return {
-    call,
-  };
+  return fetchResponse;
 }
 
 export function useApiCall<
-  TPath extends PathsWithOperations,
-  TMethod extends OperationMethodsForPath<TPath>,
-  TResponseContentType extends ResponseContentType<
-    OpenApiOperationAt<TPath, TMethod>
-  >,
-  TRequestContentType extends RequestContentType<
-    OpenApiOperationAt<TPath, TMethod>
-  >,
-  TResponseStatusCode extends ResponseStatusCode<
-    OpenApiOperationAt<TPath, TMethod>
-  >,
-  TRequestData extends RequestDataType<
-    OpenApiOperationAt<TPath, TMethod>,
-    TRequestContentType
-  >,
-  TResponseData extends ResponseDataType<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  >,
-  TResponseDataByStatus extends ResponseDataTypeByStatusCode<
-    OpenApiOperationAt<TPath, TMethod>,
-    TResponseContentType,
-    TResponseStatusCode
-  >
+  TMethod extends HttpMethod,
+  TPath extends PathsWithMethod<paths, TMethod>,
+  TMedia extends MediaType = `${string}/${string}`
 >(
-  apiService: ApiService<
-    TPath,
-    TMethod,
-    TResponseContentType,
-    TResponseStatusCode,
-    TResponseDataByStatus,
-    TResponseData,
-    TRequestContentType,
-    TRequestData
-  >,
-  apiServiceOptions: ApiServiceCallParams<
-    TPath,
-    TMethod,
-    TRequestContentType,
-    TResponseData
-  >,
-  dependencies: any[] = []
-): UseApiCallReturn<TResponseData> {
+  apiService: ApiService<TMethod, TPath>,
+  dependencies: any[],
+  ...init: Parameters<ApiService<TMethod, TPath>>
+): Partial<
+  FetchResponse<
+    paths[TPath][TMethod] & Record<string, any>,
+    MaybeOptionalInit<paths[TPath], TMethod>,
+    TMedia
+  >
+> & {
+  refetch: () => Promise<void>;
+  loading: boolean;
+} {
+  const authContext = useContext(AuthContext);
+  const [loading, setLoading] = useState<boolean>(true);
   const [response, setResponse] = useState<
-    AxiosResponse<TResponseData> | undefined
-  >(undefined);
+    Partial<
+      FetchResponse<
+        paths[TPath][TMethod] & Record<string, any>,
+        MaybeOptionalInit<paths[TPath], TMethod>,
+        TMedia
+      >
+    >
+  >({});
 
-  async function refetch() {
-    setResponse(await apiService.call(apiServiceOptions));
-  }
+  // The refetch function (keep this!)
+  const refetch = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const result = updateAuthFromFetchResponse(
+        await apiService(...init),
+        authContext
+      );
+      setResponse(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiService, ...dependencies]); // Proper dependencies
 
+  // This handles automatic fetching when dependencies change
   useEffect(() => {
     refetch();
-  }, dependencies);
+  }, [refetch]);
 
-  return { ...response, refetch };
+  return { ...response, refetch, loading };
 }

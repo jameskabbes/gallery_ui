@@ -1,168 +1,177 @@
 import { paths } from '../openapi_schema_client';
-import { createApiService, ResponseDataTypeByStatusCode } from '../utils/api';
-
+import { apiClient } from '../utils/apiClient';
+import { ApiService } from '../types';
+import { HttpMethod, PathsWithMethod } from 'openapi-typescript-helpers';
 // Auth
-export const getAuth = createApiService('/auth/', 'get');
+
+function createApiService<
+  TMethod extends HttpMethod,
+  TPath extends PathsWithMethod<paths, TMethod>
+>(method: TMethod, url: TPath): ApiService<TMethod, TPath> {
+  return async (...init) => {
+    return apiClient.request(method, url, ...init);
+  };
+}
+
+export const getAuth = createApiService('get', '/auth/');
+
 export const postLogInPassword = createApiService(
-  '/auth/login/password/',
-  'post'
+  'post',
+  '/auth/login/password/'
 );
-export const postLogInGoogle = createApiService('/auth/login/google/', 'post');
+export const postLogInGoogle = createApiService('post', '/auth/login/google/');
 
 export const postLogInMagicLink = createApiService(
-  '/auth/login/magic-link/',
-  'post'
+  'post',
+  '/auth/login/magic-link/'
 );
 
 export const postLogInOTPEmail = createApiService(
-  '/auth/login/otp/email/',
-  'post'
+  'post',
+  '/auth/login/otp/email/'
 );
 
 export const postLogInOTPPhoneNumber = createApiService(
-  '/auth/login/otp/phone_number/',
-  'post'
+  'post',
+  '/auth/login/otp/phone_number/'
 );
 
-export const postSignUp = createApiService('/auth/signup/', 'post');
+export const postSignUp = createApiService('post', '/auth/signup/');
 
-export const postLogOut = createApiService('/auth/logout/', 'post');
+export const postLogOut = createApiService('post', '/auth/logout/');
 
 export const postRequestMagicLinkEmail = createApiService(
-  '/auth/request/magic-link/email/',
-  'post'
+  'post',
+  '/auth/request/magic-link/email/'
 );
 
 export const postRequestMagicLinkSMS = createApiService(
-  '/auth/request/magic-link/sms/',
-  'post'
+  'post',
+  '/auth/request/magic-link/sms/'
 );
 
 export const postRequestOTPEmail = createApiService(
-  '/auth/request/otp/email/',
-  'post'
+  'post',
+  '/auth/request/otp/email/'
 );
 
 export const postRequestOTPSMS = createApiService(
-  '/auth/request/otp/sms/',
-  'post'
+  'post',
+  '/auth/request/otp/sms/'
 );
 
 export const postRequestSignUp = createApiService(
-  '/auth/request/signup/',
-  'post'
+  'post',
+  '/auth/request/signup/'
 );
 
 // User
 
-export const patchMe = createApiService('/users/me/', 'patch');
+export const patchMe = createApiService('patch', '/users/me/');
 
-export const getMe = createApiService('/users/me/', 'get');
+export const getMe = createApiService('get', '/users/me/');
 
-export const deleteMe = createApiService('/users/me/', 'delete');
+export const deleteMe = createApiService('delete', '/users/me/');
 
 export const getIsUserUsernameAvailable = createApiService(
-  '/users/available/username/{username}/',
-  'get'
+  'get',
+  '/users/available/username/{username}/'
 );
 
 // User Access Tokens
 
 export const getUserAccessTokens = createApiService(
-  '/user-access-tokens/',
-  'get'
+  'get',
+  '/user-access-tokens/'
 );
 
 export const deleteUserAccessToken = createApiService(
-  '/user-access-tokens/{user_access_token_id}/',
-  'delete'
+  'delete',
+  '/user-access-tokens/{user_access_token_id}/'
 );
 
 // Api Keys
-export const getApiKey = createApiService('/api-keys/{api_key_id}/', 'get');
+export const getApiKey = createApiService('get', '/api-keys/{api_key_id}/');
 
-export const getApiKeys = createApiService('/api-keys/', 'get');
+export const getApiKeys = createApiService('get', '/api-keys/');
 
-export const postApiKey = createApiService('/api-keys/', 'post');
+export const postApiKey = createApiService('post', '/api-keys/');
 
-export const patchApiKey = createApiService('/api-keys/{api_key_id}/', 'patch');
+export const patchApiKey = createApiService('patch', '/api-keys/{api_key_id}/');
 
 export const deleteApiKey = createApiService(
-  '/api-keys/{api_key_id}/',
-  'delete'
+  'delete',
+  '/api-keys/{api_key_id}/'
 );
 
 export const getIsApiKeyAvailable = createApiService(
-  '/api-keys/details/available/',
-  'get'
+  'get',
+  '/api-keys/details/available/'
 );
 
 export const getApiKeyJwt = createApiService(
-  '/api-keys/{api_key_id}/generate-jwt/',
-  'get'
+  'get',
+  '/api-keys/{api_key_id}/generate-jwt/'
 );
 
 // Api Key Scope
 export const postApiKeyScope = createApiService(
-  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/',
-  'post'
+  'post',
+  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/'
 );
 
 export const deleteApiKeyScope = createApiService(
-  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/',
-  'delete'
+  'delete',
+  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/'
 );
 
 // Gallery
-export const postGallery = createApiService<'/galleries/', 'post'>(
-  '/galleries/',
-  'post'
-);
+export const postGallery = createApiService('post', '/galleries/');
 
 export const patchGallery = createApiService(
-  '/galleries/{gallery_id}/',
-  'patch'
+  'patch',
+  '/galleries/{gallery_id}/'
 );
 
 export const deleteGallery = createApiService(
-  '/galleries/{gallery_id}/',
-  'delete'
+  'delete',
+  '/galleries/{gallery_id}/'
 );
 
 export const getIsGalleryAvailable = createApiService(
-  '/galleries/details/available/',
-  'get'
+  'get',
+  '/galleries/details/available/'
 );
 
 export const postGallerySync = createApiService(
-  '/galleries/{gallery_id}/sync/',
-  'post'
+  'post',
+  '/galleries/{gallery_id}/sync/'
 );
 
 export const postGalleryFile = createApiService(
-  '/galleries/{gallery_id}/upload/',
-  'post'
+  'post',
+  '/galleries/{gallery_id}/upload/'
 );
 
 // pages
 
-export const getHomePage = createApiService('/pages/home/', 'get');
+export const getHomePage = createApiService('get', '/pages/home/');
 
-export const getStylesPage = createApiService('/pages/styles/', 'get');
+export const getStylesPage = createApiService('get', '/pages/styles/');
 
-export const getSettingsPage = createApiService('/pages/settings/', 'get');
+export const getSettingsPage = createApiService('get', '/pages/settings/');
 
 export const getApiKeysSettingsPage = createApiService(
-  '/pages/settings/api-keys/',
-  'get'
+  'get',
+  '/pages/settings/api-keys/'
 );
 
 export const getUserAccessTokensSettingsPage = createApiService(
-  '/pages/settings/user-access-tokens/',
-  'get'
+  'get',
+  '/pages/settings/user-access-tokens/'
 );
 
 export const getGalleryPage = createApiService(
-  '/pages/galleries/{gallery_id}/',
-  'get'
+  'get',
+  '/pages/galleries/{gallery_id}/'
 );

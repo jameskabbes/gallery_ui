@@ -15,7 +15,7 @@ export function Home() {
   const authModalsContext = useContext(AuthModalsContext);
   const authContext = useContext(AuthContext);
 
-  const { data } = useApiCall(getHomePage, { authContext });
+  const { data } = useApiCall(getHomePage, []);
   return (
     <>
       <div>

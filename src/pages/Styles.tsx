@@ -61,18 +61,16 @@ export function Styles() {
   });
 
   const [phoneNumber, setPhoneNumber] = useState<
-    ValidatedInputState<E164Number>
+    ValidatedInputState<E164Number | null>
   >({
-    ...defaultValidatedInputState<E164Number>(null),
+    ...defaultValidatedInputState<E164Number | null>(null),
   });
 
-  const { data, status, loading } = useApiCall(getStylesPage, {
-    authContext,
-  });
+  const { data, loading } = useApiCall(getStylesPage, []);
 
   const [counter, setCounter] = useState<number>(0);
-  const [modalKey, setModalKey] = useState<number>(null);
-  const modalKeyRef = useRef<number>(modalKey);
+  const [modalKey, setModalKey] = useState<number | null>(null);
+  const modalKeyRef = useRef<number | null>(modalKey);
 
   useEffect(() => {
     modalKeyRef.current = modalKey;
@@ -100,7 +98,11 @@ export function Styles() {
           >
             Increment
           </Button2>
-          <Button1 onClick={() => setModalKey((prev) => prev + 1)}>
+          <Button1
+            onClick={() =>
+              setModalKey((prev) => (prev === null ? 1 : prev + 1))
+            }
+          >
             Swap modal
           </Button1>
           <Button1
@@ -296,7 +298,7 @@ export function Styles() {
                 <section>
                   <label htmlFor="phone-number-input">Phone Number</label>
                   <ValidatedInputPhoneNumber
-                    state={phoneNumber}
+                    state={phoneNumber ?? ''}
                     setState={setPhoneNumber}
                   />
                 </section>

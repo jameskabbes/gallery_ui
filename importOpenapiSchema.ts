@@ -1,5 +1,5 @@
-import { writeFileSync } from 'fs';
 import { execFileSync } from 'child_process';
+import { writeFileSync } from 'fs';
 import { importedConfig } from './importConfig';
 import JsonToTS from 'json-to-ts';
 
@@ -13,7 +13,7 @@ const relativeOpenapiSchemaPath = path.relative(
 
 const cliSchemaPath = relativeOpenapiSchemaPath.split(path.sep).join('/');
 
-const outputPath = './src/openapi_schema.d.ts';
+const outputPath = './src/openapi_schema_client.d.ts';
 const command = 'npx';
 const args = ['openapi-typescript', cliSchemaPath, '-o', outputPath];
 
