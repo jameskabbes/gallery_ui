@@ -88,8 +88,8 @@ export function useValidatedInput<T>({
   }, [state.value]);
 }
 
-export interface UseValidatedInputStringProps<T = string>
-  extends UseValidatedInputProps<T> {
+export interface UseValidatedInputStringProps
+  extends UseValidatedInputProps<string> {
   minLength?: React.InputHTMLAttributes<HTMLInputElement>['minLength'];
   maxLength?: React.InputHTMLAttributes<HTMLInputElement>['minLength'];
   pattern?: React.InputHTMLAttributes<HTMLInputElement>['pattern'];

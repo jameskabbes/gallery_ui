@@ -18,7 +18,7 @@ import { Surface } from '../Utils/Surface';
 type T = E164Number;
 
 export interface ValidatedInputPhoneNumberProps
-  extends UseValidatedInputStringProps<T>,
+  extends UseValidatedInputStringProps,
     InputTextBaseInputProps {
   defaultCountryCode?: CountryCode; // Default country code (e.g., 'US', 'GB')
   showStatus?: boolean;
@@ -81,10 +81,16 @@ export function ValidatedInputPhoneNumber({
 
     const a = formatter.input(displayProposedChange);
 
+    console.log(a);
+
+    setDisplay(a);
+
     const phoneNumber = parsePhoneNumberFromString(
       displayProposedChange,
       selectedCountryCode
     );
+
+    console.log(phoneNumber);
 
     if (phoneNumber && phoneNumber.isValid()) {
       setState((prev) => ({
@@ -96,7 +102,7 @@ export function ValidatedInputPhoneNumber({
     } else {
       setState((prev) => ({
         ...prev,
-        value: '' as T,
+        value: a,
         status: 'invalid',
         error: 'Invalid phone number',
       }));
