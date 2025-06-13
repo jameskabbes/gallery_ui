@@ -1,5 +1,5 @@
-import { paths } from '../openapi_schema_client';
-import { apiClient } from '../utils/apiClient';
+import { paths } from '../gallery_api_schema_client';
+import { galleryClient } from '../utils/apiClient';
 import { ApiService } from '../types';
 import { HttpMethod, PathsWithMethod } from 'openapi-typescript-helpers';
 // Auth
@@ -9,7 +9,7 @@ function createApiService<
   TPath extends PathsWithMethod<paths, TMethod>
 >(method: TMethod, url: TPath): ApiService<TMethod, TPath> {
   return async (...init) => {
-    return apiClient.request(method, url, ...init);
+    return galleryClient.request(method, url, ...init);
   };
 }
 
@@ -148,10 +148,10 @@ export const postGallerySync = createApiService(
   '/galleries/{gallery_id}/sync/'
 );
 
-export const postGalleryFile = createApiService(
-  'post',
-  '/galleries/{gallery_id}/upload/'
-);
+// export const postGalleryFile = createApiService(
+//   'post',
+//   '/galleries/{gallery_id}/upload/'
+// );
 
 // pages
 

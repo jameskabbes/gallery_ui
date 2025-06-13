@@ -1,9 +1,10 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { defaultValidatedInputState, ValidatedInputState } from '../../types';
+import { ValidatedInputState } from '../../types';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { ButtonSubmit } from '../Utils/Button';
 import { Surface } from '../Utils/Surface';
 import { Card1 } from '../Utils/Card';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 
 export interface TextConfirmationModalProps {
   title: string;

@@ -4,11 +4,12 @@ import { RequestOTPContext } from '../../contexts/RequestOTP';
 import { AuthModalsContext } from '../../contexts/AuthModals';
 import {
   AuthModalType,
-  defaultValidatedInputState,
   RequestOTPContextType,
   ValidatedInputState,
 } from '../../types';
 import { config } from '../../config/config';
+
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 
 import {
   postLogInOTPPhoneNumber,
@@ -24,6 +25,7 @@ import { Surface } from '../Utils/Surface';
 import { useValidatedInputString } from '../../utils/useValidatedInput';
 import { Loader1 } from '../Utils/Loader';
 import { IoLogInOutline, IoWarning } from 'react-icons/io5';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 export function RequestOTP() {
   const authContext = useContext(AuthContext);
@@ -51,19 +53,23 @@ export function RequestOTP() {
     authModalsContext.activate('verifyOTP');
 
     if (requestOTPContext.medium === 'email') {
-      var { status } = await postRequestOTPEmail.call({
-        authContext,
-        data: {
-          email: requestOTPContext.email.value,
-        },
-      });
+      updateAuthFromFetchResponse(
+        await postRequestOTPEmail({
+          body: {
+            email: requestOTPContext.email.value,
+          },
+        }),
+        authContext
+      );
     } else if (requestOTPContext.medium === 'sms') {
-      var { status } = await postRequestOTPSMS.call({
-        authContext,
-        data: {
-          phone_number: requestOTPContext.phoneNumber.value,
-        },
-      });
+      updateAuthFromFetchResponse(
+        await postRequestOTPSMS({
+          body: {
+            phone_number: requestOTPContext.phoneNumber.value,
+          },
+        }),
+        authContext
+      );
     }
   }
 
@@ -94,11 +100,11 @@ export function RequestOTP() {
                   setState={requestOTPContext.setEmail}
                   id="request-otp-email"
                   minLength={
-                    config.openapiSchema.components.schemas
+                    config.apiSchemas['gallery'].components.schemas
                       .LoginWithOTPEmailRequest.properties.email.minLength
                   }
                   maxLength={
-                    config.openapiSchema.components.schemas
+                    config.apiSchemas['gallery'].components.schemas
                       .LoginWithOTPEmailRequest.properties.email.maxLength
                   }
                   type="email"
@@ -167,18 +173,20 @@ export function VerifyOTP() {
   const [code, setCode] = useState<ValidatedInputState<string>>({
     ...defaultValidatedInputState<string>(''),
   });
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [cursorIndex, setCursorIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const pattern = new RegExp(
-    config.openapiSchema.components.schemas.LoginWithOTPEmailRequest.properties.code.pattern
+    config.apiSchemas[
+      'gallery'
+    ].components.schemas.LoginWithOTPEmailRequest.properties.code.pattern
   );
 
   const nCharacters =
-    config.openapiSchema.components.schemas.LoginWithOTPEmailRequest.properties
-      .code.maxLength;
+    config.apiSchemas['gallery'].components.schemas.LoginWithOTPEmailRequest
+      .properties.code.maxLength;
 
   function setControlledCursorIndex(index: number, codeValueLength: number) {
     if (index < 0) {
@@ -198,7 +206,7 @@ export function VerifyOTP() {
     minLength: nCharacters,
     maxLength: nCharacters,
     pattern:
-      config.openapiSchema.components.schemas.LoginWithOTPEmailRequest
+      config.apiSchemas['gallery'].components.schemas.LoginWithOTPEmailRequest
         .properties.code.pattern,
   });
 
@@ -210,18 +218,19 @@ export function VerifyOTP() {
 
   // Check focus state on component render and updates
   useEffect(() => {
-    const handleFocus = () => setIsFocused(true);
-    const handleBlur = () => setIsFocused(false);
-
     const currentInput = inputRef.current;
 
-    currentInput.addEventListener('focus', handleFocus);
-    currentInput.addEventListener('blur', handleBlur);
+    if (currentInput !== null) {
+      const handleFocus = () => setIsFocused(true);
+      const handleBlur = () => setIsFocused(false);
+      currentInput.addEventListener('focus', handleFocus);
+      currentInput.addEventListener('blur', handleBlur);
 
-    return () => {
-      currentInput.removeEventListener('focus', handleFocus);
-      currentInput.removeEventListener('blur', handleBlur);
-    };
+      return () => {
+        currentInput.removeEventListener('focus', handleFocus);
+        currentInput.removeEventListener('blur', handleBlur);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -233,25 +242,37 @@ export function VerifyOTP() {
     e.preventDefault();
     setLoading(true);
 
+    var valid = false;
+
     if (requestOTPContext.medium === 'email') {
-      var { data, status } = await postLogInOTPEmail.call({
-        authContext,
-        data: {
-          email: requestOTPContext.email.value,
-          code: code.value,
-        },
-      });
+      const { response } = updateAuthFromFetchResponse(
+        await postLogInOTPEmail({
+          body: {
+            code: code.value,
+            email: requestOTPContext.email.value,
+          },
+        }),
+        authContext
+      );
+      if (response.ok) {
+        valid = true;
+      }
     } else if (requestOTPContext.medium === 'sms') {
-      var { data, status } = await postLogInOTPPhoneNumber.call({
-        authContext,
-        data: {
-          phone_number: requestOTPContext.phoneNumber.value,
-          code: code.value,
-        },
-      });
+      const { response } = updateAuthFromFetchResponse(
+        await postLogInOTPPhoneNumber({
+          body: {
+            code: code.value,
+            phone_number: requestOTPContext.phoneNumber.value,
+          },
+        }),
+        authContext
+      );
+      if (response.ok) {
+        valid = true;
+      }
     }
     setLoading(false);
-    if (status === 200) {
+    if (valid) {
       authModalsContext.activate(null);
     } else {
       setCode((prev) => ({

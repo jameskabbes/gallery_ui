@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
-import { ValidatedInputState, defaultValidatedInputState } from '../../types';
+import { ValidatedInputState } from '../../types';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
-import { components } from '../../openapi_schema_client';
+import { components } from '../../gallery_api_schema_client';
 import { ToastContext } from '../../contexts/Toast';
 import { patchMe } from '../../services/apiServices';
 import { Button1 } from '../Utils/Button';
 import { isPasswordValid } from '../../services/isPasswordValid';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 export function UpdatePassword() {
   const [password, setPassword] = useState<ValidatedInputState<string>>({
@@ -54,24 +56,21 @@ export function UpdatePassword() {
         message: 'Updating password...',
       });
 
-      const response = await patchMe.call({
-        authContext,
-        data: {
-          password: password.value,
-        },
-      });
+      const { data, response } = updateAuthFromFetchResponse(
+        await patchMe({
+          body: {
+            password: password.value,
+          },
+        }),
+        authContext
+      );
 
-      if (response.status === 200) {
-        const apiData = response.data as (typeof patchMe.responses)['200'];
+      if (response.ok) {
         setPassword({ ...defaultValidatedInputState<string>('') });
         setConfirmPassword({ ...defaultValidatedInputState<string>('') });
         toastContext.update(toastId, {
           message: 'Updated password',
           type: 'success',
-        });
-        authContext.setState({
-          ...authContext.state,
-          user: apiData,
         });
       } else {
         toastContext.update(toastId, {
@@ -91,12 +90,12 @@ export function UpdatePassword() {
           setState={setPassword}
           id="password"
           minLength={
-            config.openapiSchema.components.schemas.UserUpdate.properties
-              .password.anyOf[0]?.minLength
+            config.apiSchemas['gallery'].components.schemas.UserUpdate
+              .properties.password.anyOf[0]?.minLength
           }
           maxLength={
-            config.openapiSchema.components.schemas.UserUpdate.properties
-              .password.anyOf[0]?.maxLength
+            config.apiSchemas['gallery'].components.schemas.UserUpdate
+              .properties.password.anyOf[0]?.maxLength
           }
           type="password"
           isValid={isPasswordValid}

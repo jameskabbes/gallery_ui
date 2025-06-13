@@ -1,8 +1,8 @@
 import React from 'react';
-import { paths, operations, components } from './openapi_schema_client';
+import { paths, operations, components } from './gallery_api_schema_client';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { E164Number } from 'libphonenumber-js';
-import { OpenapiSchema } from './openapi_schema';
+import { GalleryApiSchema } from './gallery_api_schema';
 
 import {
   ClientRequestMethod,
@@ -46,14 +46,6 @@ export interface ValidatedInputState<T> {
   status: 'valid' | 'invalid' | 'loading';
   error: string | null;
 }
-
-export const defaultValidatedInputState = <T>(
-  defaultValue: T
-): ValidatedInputState<T> => ({
-  value: defaultValue,
-  status: 'valid',
-  error: null,
-});
 
 export interface DarkModeContextType {
   state: boolean;
@@ -280,15 +272,21 @@ interface ViteConfig {
 
 export interface FrontendConfig {
   VITE: ViteConfig;
-  OPENAPI_SCHEMA_PATH: string;
+  OPENAPI_SCHEMA_PATHS: {
+    gallery: string;
+  };
 }
 
 export interface Config {
   backendUrl: string;
   frontendUrl: string;
   vite: ViteConfig;
-  openapiSchemaPath: string;
-  openapiSchema: OpenapiSchema;
+  apiSchemaPaths: {
+    gallery: string;
+  };
+  apiSchemas: {
+    gallery: GalleryApiSchema;
+  };
   authKey: string;
   headerKeys: HeaderKeys;
   frontendRoutes: Record<string, string>;

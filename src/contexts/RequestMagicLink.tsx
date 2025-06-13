@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useReducer, createContext } from 'react';
-import {
-  RequestMagicLinkContextType,
-  defaultValidatedInputState,
-} from '../types';
+import { RequestMagicLinkContextType } from '../types';
+import { defaultValidatedInputState } from '../utils/useValidatedInput';
 import { E164Number } from 'libphonenumber-js';
 
 export const RequestMagicLinkContext =

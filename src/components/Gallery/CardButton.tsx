@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CardButton } from '../Utils/Card';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import { getGalleryLink } from './getLink';
 
 interface Props {

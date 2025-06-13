@@ -6,6 +6,7 @@ import {
   ToastContextType,
 } from '../../types';
 import { useConfirmationModal } from '../../utils/useConfirmationModal';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 interface Props {
   activateTextConfirmation: ReturnType<
@@ -29,12 +30,12 @@ export function setDeleteAccountModal({
       message: 'Deleting account...',
     });
 
-    const response = await deleteMe.call({
-      authContext,
-    });
+    const { data, response } = await updateAuthFromFetchResponse(
+      await deleteMe(),
+      authContext
+    );
 
-    if (response.status === 204) {
-      const data = response.data as (typeof deleteMe.responses)['204'];
+    if (response.ok) {
       toastContext.update(toastId, {
         message: 'Account deleted',
         type: 'success',

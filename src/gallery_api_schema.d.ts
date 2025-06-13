@@ -1,4 +1,4 @@
-export interface OpenapiSchema {
+export interface GalleryApiSchema {
   openapi: string;
   info: Info;
   paths: Paths;
@@ -939,7 +939,7 @@ interface Get4 {
   summary: string;
   operationId: string;
   parameters: Parameter3[];
-  responses: Responses5;
+  responses: Responses2;
 }
 interface Parameter3 {
   name: string;

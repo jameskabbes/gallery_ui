@@ -35,7 +35,17 @@ export function Menu() {
   const menuItems: MenuItem[] = [
     {
       key: 'galleries',
-      element: <Link to={config.frontendRoutes.galleries}>Galleries</Link>,
+      element: (
+        <Link
+          to={
+            config.frontendRoutes.galleries === undefined
+              ? '/'
+              : config.frontendRoutes.galleries
+          }
+        >
+          Galleries
+        </Link>
+      ),
       onClick: () => {},
       viewMode: 'logged-in',
     },

@@ -1,13 +1,21 @@
 import React, { createContext, useState } from 'react';
 
-import { RequestOTPContextType, defaultValidatedInputState } from '../types';
+import { RequestOTPContextType } from '../types';
+import { defaultValidatedInputState } from '../utils/useValidatedInput';
+import { E164Number } from 'libphonenumber-js';
 
 export const RequestOTPContext = createContext<RequestOTPContextType>({
-  medium: null,
+  medium: 'email',
   setMedium: () => {},
-  email: null,
+  email: {
+    ...defaultValidatedInputState<RequestOTPContextType['email']['value']>(''),
+  },
   setEmail: () => {},
-  phoneNumber: null,
+  phoneNumber: {
+    ...defaultValidatedInputState<
+      RequestOTPContextType['phoneNumber']['value']
+    >('' as E164Number),
+  },
   setPhoneNumber: () => {},
   valid: false,
   setValid: () => {},
@@ -32,7 +40,7 @@ export function RequestOTPContextProvider({
   >({
     ...defaultValidatedInputState<
       RequestOTPContextType['phoneNumber']['value']
-    >(null),
+    >('' as E164Number),
   });
   const [valid, setValid] = useState<RequestOTPContextType['valid']>(false);
 

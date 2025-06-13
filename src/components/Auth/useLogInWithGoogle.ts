@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { ToastContext } from '../../contexts/Toast';
 import { AuthContext } from '../../contexts/Auth';
 import { AuthModalsContext } from '../../contexts/AuthModals';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 export function useLogInWithGoogle() {
   const toastContext = useContext(ToastContext);
@@ -16,19 +17,20 @@ export function useLogInWithGoogle() {
         message: 'Logging in with Google...',
       });
 
-      const { data, status } = await postLogInGoogle.call({
-        authContext,
-        data: {
-          access_token: res.access_token,
-        },
-      });
+      const { data, response } = updateAuthFromFetchResponse(
+        await postLogInGoogle({
+          body: {
+            id_token: res.access_token,
+          },
+        }),
+        authContext
+      );
 
-      if (status == 200) {
+      if (response.ok) {
         toastContext.update(toastId, {
           message: 'Logged in with Google',
           type: 'success',
         });
-        const apiData = data as (typeof postLogInGoogle.responses)['200'];
         authModalsContext.activate(null);
       } else {
         toastContext.update(toastId, {

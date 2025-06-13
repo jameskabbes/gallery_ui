@@ -9,8 +9,8 @@ const localStoragePreference: DarkModeContextType['preference'] =
   ) as DarkModeContextType['preference']) || 'system';
 
 export const DarkModeContext = createContext<DarkModeContextType>({
-  state: null,
-  systemState: null,
+  state: false,
+  systemState: false,
   preference: localStoragePreference,
   setPreference: (preference: DarkModeContextType['preference']) => {},
 });

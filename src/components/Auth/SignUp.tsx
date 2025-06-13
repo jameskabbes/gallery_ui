@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 
 import { postSignUp, postRequestSignUp } from '../../services/apiServices';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -20,7 +20,7 @@ import { ModalsContext } from '../../contexts/Modals';
 import { Surface } from '../Utils/Surface';
 import { useLogInWithGoogle } from './useLogInWithGoogle';
 import { Card1 } from '../Utils/Card';
-import { useApiCall } from '../../utils/api';
+import { updateAuthFromFetchResponse, useApiCall } from '../../utils/api';
 
 const checkInboxModalKey = 'modal-signup-check-inbox';
 
@@ -76,12 +76,15 @@ export function RequestSignUp() {
 
       requestSignUpContext.setLoading(true);
 
-      await postRequestSignUp.call({
-        authContext,
-        data: {
-          email: requestSignUpContext.email.value,
-        },
-      });
+      const {} = updateAuthFromFetchResponse(
+        await postRequestSignUp({
+          body: {
+            email: requestSignUpContext.email.value,
+          },
+        }),
+        authContext
+      );
+
       requestSignUpContext.setLoading(false);
     }
   }
@@ -101,11 +104,11 @@ export function RequestSignUp() {
                   setState={requestSignUpContext.setEmail}
                   id="sign-up-email"
                   minLength={
-                    config.openapiSchema.components.schemas
+                    config.apiSchemas['gallery'].components.schemas
                       .RequestSignUpEmailRequest.properties.email.minLength
                   }
                   maxLength={
-                    config.openapiSchema.components.schemas
+                    config.apiSchemas['gallery'].components.schemas
                       .RequestSignUpEmailRequest.properties.email.maxLength
                   }
                   type="email"
@@ -164,12 +167,10 @@ export function VerifySignUp() {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
-  type PostSignUpResponses = typeof postSignUp.responses;
-  const [status, setStatus] = useState<keyof PostSignUpResponses>(null);
-
   const [token, setToken] = useState<
-    Parameters<typeof postSignUp.call>[0]['data']['token']
-  >(new URLSearchParams(location.search).get('token'));
+    Parameters<typeof postSignUp>['0']['body']['token'] | null
+  >(null);
+  const [success, setSuccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     setToken(new URLSearchParams(location.search).get('token'));
@@ -177,14 +178,18 @@ export function VerifySignUp() {
 
   useEffect(() => {
     async function verifySignUp() {
-      const { data, status } = await postSignUp.call({
-        authContext,
-        data: {
-          token: token,
-        },
-      });
+      const { data, response } = updateAuthFromFetchResponse(
+        await postSignUp({
+          body: {
+            token: token === null ? '' : token,
+          },
+        }),
+        authContext
+      );
       navigate({ search: '' });
-      setStatus(status as keyof PostSignUpResponses);
+      if (response.ok) {
+        setSuccess(true);
+      }
       authContext.updateFromApiResponse(data);
     }
     if (token) {
@@ -194,9 +199,9 @@ export function VerifySignUp() {
 
   return (
     <div>
-      {status === 200 ? (
+      {success === true ? (
         <h1>Success</h1>
-      ) : status === null ? (
+      ) : success === null ? (
         <Loader1 />
       ) : (
         <h1>Error</h1>

@@ -1,8 +1,8 @@
 import createClient from 'openapi-fetch';
 import { config } from '../config/config';
-import { paths } from '../openapi_schema_client';
+import { paths as gallery_paths } from '../gallery_api_schema_client';
 
-export const apiClient = createClient<paths>({
+export const galleryClient = createClient<gallery_paths>({
   baseUrl: config.backendUrl,
 });
 

@@ -1,12 +1,21 @@
 import React, { useEffect, useState, useReducer, createContext } from 'react';
-import { LogInContextType, defaultValidatedInputState } from '../types';
+import { LogInContextType } from '../types';
+import { defaultValidatedInputState } from '../utils/useValidatedInput';
 
 export const LogInContext = createContext<LogInContextType>({
-  username: null,
+  username: {
+    ...defaultValidatedInputState<LogInContextType['username']['value']>(''),
+  },
   setUsername: () => {},
-  password: null,
+  password: {
+    ...defaultValidatedInputState<LogInContextType['password']['value']>(''),
+  },
   setPassword: () => {},
-  staySignedIn: null,
+  staySignedIn: {
+    ...defaultValidatedInputState<LogInContextType['staySignedIn']['value']>(
+      false
+    ),
+  },
   setStaySignedIn: () => {},
   valid: false,
   setValid: () => {},

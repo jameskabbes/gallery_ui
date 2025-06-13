@@ -2,4 +2,6 @@ VITE:
   server:
     port: 3000
     host: true
-OPENAPI_SCHEMA_PATH: ../openapi_schema.json
+OPENAPI_SCHEMA_PATHS:
+  gallery:
+    - ../openapi_schema.json

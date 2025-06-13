@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
 import { isEmailValid } from '../../services/isEmailValid';
-import { defaultValidatedInputState, ValidatedInputState } from '../../types';
+import { ValidatedInputState } from '../../types';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 import { patchMe } from '../../services/apiServices';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { Button1, Button2, ButtonSubmit } from '../Utils/Button';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 interface Props {
   user: components['schemas']['UserPrivate'];
@@ -40,24 +42,22 @@ export function UpdateEmail({ user }: Props) {
         message: 'Updating email...',
       });
 
-      const response = await patchMe.call({
-        authContext,
-        data: {
-          email: email.value,
-        },
-      });
+      const { data, response } = updateAuthFromFetchResponse(
+        await patchMe({
+          body: {
+            email: email.value,
+          },
+        }),
+        authContext
+      );
+
       setLoading(false);
 
-      if (response.status === 200) {
-        const apiData = response.data as (typeof patchMe.responses)['200'];
+      if (response.ok) {
         setStartingEmail(email.value);
         toastContext.update(toastId, {
           message: 'Updated user',
           type: 'success',
-        });
-        authContext.setState({
-          ...authContext.state,
-          user: apiData,
         });
       } else {
         toastContext.update(toastId, {
@@ -79,12 +79,12 @@ export function UpdateEmail({ user }: Props) {
             id="email"
             type="email"
             minLength={
-              config.openapiSchema.components.schemas.UserUpdate.properties
-                .email.anyOf[0]?.minLength
+              config.apiSchemas['gallery'].components.schemas.UserUpdate
+                .properties.email.anyOf[0]?.minLength
             }
             maxLength={
-              config.openapiSchema.components.schemas.UserUpdate.properties
-                .email.anyOf[0]?.maxLength
+              config.apiSchemas['gallery'].components.schemas.UserUpdate
+                .properties.email.anyOf[0]?.maxLength
             }
             checkValidity={true}
             isValid={isEmailValid}

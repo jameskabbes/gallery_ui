@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState, Children } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DeviceContext } from '../contexts/Device';
-import { paths, operations, components } from '../openapi_schema_client';
+import { paths, operations, components } from '../gallery_api_schema_client';
 import { updateAuthFromFetchResponse, useApiCall } from '../utils/api';
 import { ModalsContext } from '../contexts/Modals';
 import { AuthContext } from '../contexts/Auth';

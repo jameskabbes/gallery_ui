@@ -76,109 +76,106 @@ export function RequestMagicLink() {
         authContext
       );
     }
-    return (
-      <div id="login-with-email" className="flex flex-col">
-        <div className="flex flex-col">
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
-            <header>Send Magic Link</header>
-            <div className="flex flex-row space-x-2">
-              {mediums.map((medium) => (
-                <Button2
-                  type="button"
-                  key={medium}
-                  onClick={() => requestMagicLinkContext.setMedium(medium)}
-                  isActive={medium === requestMagicLinkContext.medium}
-                  className="flex-1"
-                >
-                  {medium}
-                </Button2>
-              ))}
-            </div>
-
-            <fieldset className="flex flex-col space-y-6">
-              <section className="space-y-2">
-                {requestMagicLinkContext.medium === 'email' ? (
-                  <>
-                    <label htmlFor="request-magic-link-email">Email</label>
-                    <ValidatedInputString
-                      state={requestMagicLinkContext.email}
-                      setState={requestMagicLinkContext.setEmail}
-                      id="request-magic-link-email"
-                      minLength={
-                        config.openapiSchema.components.schemas
-                          .RequestMagicLinkEmailRequest.properties.email
-                          .minLength
-                      }
-                      maxLength={
-                        config.openapiSchema.components.schemas
-                          .RequestMagicLinkEmailRequest.properties.email
-                          .maxLength
-                      }
-                      type="email"
-                      checkValidity={true}
-                      showStatus={true}
-                      isValid={isEmailValid}
-                    />
-                  </>
-                ) : requestMagicLinkContext.medium === 'sms' ? (
-                  <>
-                    <label htmlFor="request-magic-link-phone-number">
-                      Phone Number
-                    </label>
-                    <ValidatedInputPhoneNumber
-                      state={requestMagicLinkContext.phoneNumber}
-                      setState={requestMagicLinkContext.setPhoneNumber}
-                      id="request-magic-link-phone-number"
-                      showStatus={true}
-                    />
-                  </>
-                ) : null}
-              </section>
-            </fieldset>
-            <span className="text-center mx-10">
-              {`If an account with this ${
-                requestMagicLinkContext.medium === 'email'
-                  ? 'email address'
-                  : requestMagicLinkContext.medium === 'sms'
-                  ? 'phone number'
-                  : null
-              } exists, we will send you a magic login link.`}
-            </span>
-            <ButtonSubmit
-              disabled={
-                !requestMagicLinkContext.valid ||
-                requestMagicLinkContext.loading
-              }
-            >
-              {requestMagicLinkContext.medium === 'email'
-                ? 'Send Email'
-                : requestMagicLinkContext.medium === 'sms'
-                ? 'Send SMS'
-                : null}
-            </ButtonSubmit>
-          </form>
-          <Surface keepParentMode={true}>
-            <div className="flex flex-row items-center space-x-2 my-2">
-              <div className="flex-1 border-inherit border-t-[1px]" />
-              <p>or</p>
-              <div className="flex-1 border-inherit border-t-[1px]" />
-            </div>
-          </Surface>
-          <div className="space-y-1">
-            <Button2
-              className="w-full relative"
-              onClick={() => {
-                authModalsContext.activate('logIn');
-              }}
-            >
-              <h6 className="text-center mb-0 ">Login</h6>
-              <IoLogInOutline className="absolute left-4 top-1/2 transform -translate-y-1/2" />{' '}
-            </Button2>
+  }
+  return (
+    <div id="login-with-email" className="flex flex-col">
+      <div className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+          <header>Send Magic Link</header>
+          <div className="flex flex-row space-x-2">
+            {mediums.map((medium) => (
+              <Button2
+                type="button"
+                key={medium}
+                onClick={() => requestMagicLinkContext.setMedium(medium)}
+                isActive={medium === requestMagicLinkContext.medium}
+                className="flex-1"
+              >
+                {medium}
+              </Button2>
+            ))}
           </div>
+
+          <fieldset className="flex flex-col space-y-6">
+            <section className="space-y-2">
+              {requestMagicLinkContext.medium === 'email' ? (
+                <>
+                  <label htmlFor="request-magic-link-email">Email</label>
+                  <ValidatedInputString
+                    state={requestMagicLinkContext.email}
+                    setState={requestMagicLinkContext.setEmail}
+                    id="request-magic-link-email"
+                    minLength={
+                      config.apiSchemas['gallery'].components.schemas
+                        .RequestMagicLinkEmailRequest.properties.email.minLength
+                    }
+                    maxLength={
+                      config.apiSchemas['gallery'].components.schemas
+                        .RequestMagicLinkEmailRequest.properties.email.maxLength
+                    }
+                    type="email"
+                    checkValidity={true}
+                    showStatus={true}
+                    isValid={isEmailValid}
+                  />
+                </>
+              ) : requestMagicLinkContext.medium === 'sms' ? (
+                <>
+                  <label htmlFor="request-magic-link-phone-number">
+                    Phone Number
+                  </label>
+                  <ValidatedInputPhoneNumber
+                    state={requestMagicLinkContext.phoneNumber}
+                    setState={requestMagicLinkContext.setPhoneNumber}
+                    id="request-magic-link-phone-number"
+                    showStatus={true}
+                  />
+                </>
+              ) : null}
+            </section>
+          </fieldset>
+          <span className="text-center mx-10">
+            {`If an account with this ${
+              requestMagicLinkContext.medium === 'email'
+                ? 'email address'
+                : requestMagicLinkContext.medium === 'sms'
+                ? 'phone number'
+                : null
+            } exists, we will send you a magic login link.`}
+          </span>
+          <ButtonSubmit
+            disabled={
+              !requestMagicLinkContext.valid || requestMagicLinkContext.loading
+            }
+          >
+            {requestMagicLinkContext.medium === 'email'
+              ? 'Send Email'
+              : requestMagicLinkContext.medium === 'sms'
+              ? 'Send SMS'
+              : null}
+          </ButtonSubmit>
+        </form>
+        <Surface keepParentMode={true}>
+          <div className="flex flex-row items-center space-x-2 my-2">
+            <div className="flex-1 border-inherit border-t-[1px]" />
+            <p>or</p>
+            <div className="flex-1 border-inherit border-t-[1px]" />
+          </div>
+        </Surface>
+        <div className="space-y-1">
+          <Button2
+            className="w-full relative"
+            onClick={() => {
+              authModalsContext.activate('logIn');
+            }}
+          >
+            <h6 className="text-center mb-0 ">Login</h6>
+            <IoLogInOutline className="absolute left-4 top-1/2 transform -translate-y-1/2" />{' '}
+          </Button2>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export function VerifyMagicLink() {

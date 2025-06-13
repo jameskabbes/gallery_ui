@@ -2,6 +2,14 @@ import { useEffect, useRef } from 'react';
 import { ValidatedInputState } from '../types';
 import { validatedInput } from '../config/constants';
 
+export const defaultValidatedInputState = <T>(
+  defaultValue: T
+): ValidatedInputState<T> => ({
+  value: defaultValue,
+  status: 'valid',
+  error: null,
+});
+
 export interface ValidatedInputCheckValidityReturn {
   valid: boolean;
   message?: string;

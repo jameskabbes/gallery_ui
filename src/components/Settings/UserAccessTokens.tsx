@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContextType, ToastContextType } from '../../types';
 import { useApiCall } from '../../utils/api';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import {
   deleteUserAccessToken,
   getUserAccessTokensSettingsPage,
@@ -37,7 +37,7 @@ export function UserAccessTokens({
   type ParamKey = keyof Params;
 
   const queryParameters =
-    config.openapiSchema.paths['/pages/settings/api-keys/']['get'][
+    config.apiSchemas['gallery'].paths['/pages/settings/api-keys/']['get'][
       'parameters'
     ];
 

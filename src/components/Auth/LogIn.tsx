@@ -126,10 +126,11 @@ export function LogIn() {
                 id="login-username"
                 minLength={1}
                 maxLength={Math.max(
-                  config.openapiSchema.components.schemas.UserAdminCreate
-                    .properties.email.maxLength,
-                  config.openapiSchema.components.schemas.UserAdminCreate
-                    .properties.username.anyOf[0]?.maxLength ?? 0
+                  config.apiSchemas['gallery'].components.schemas
+                    .UserAdminCreate.properties.email.maxLength,
+                  config.apiSchemas['gallery'].components.schemas
+                    .UserAdminCreate.properties.username.anyOf[0]?.maxLength ??
+                    0
                 )}
                 type="text"
                 checkValidity={true}
@@ -152,12 +153,12 @@ export function LogIn() {
                 setState={logInContext.setPassword}
                 id="login-password"
                 minLength={
-                  config.openapiSchema.components.schemas.UserAdminCreate
-                    .properties.password.anyOf[0]?.minLength
+                  config.apiSchemas['gallery'].components.schemas
+                    .UserAdminCreate.properties.password.anyOf[0]?.minLength
                 }
                 maxLength={
-                  config.openapiSchema.components.schemas.UserAdminCreate
-                    .properties.password.anyOf[0]?.maxLength
+                  config.apiSchemas['gallery'].components.schemas
+                    .UserAdminCreate.properties.password.anyOf[0]?.maxLength
                 }
                 type="password"
                 checkValidity={true}

@@ -1,5 +1,5 @@
 import { Config, SharedConfig, FrontendConfig } from './src/types';
-import { OpenapiSchema } from './src/openapi_schema';
+import { GalleryApiSchema } from './src/gallery_api_schema';
 
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -7,6 +7,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import os from 'os';
 import { warn } from 'console';
+import { config } from 'process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -127,13 +128,32 @@ function loadFrontendConfig(): FrontendConfig {
 
 const frontendConfig = loadFrontendConfig();
 
-const openapiSchemaPath = convertEnvPathToAbsolute(
-  process.cwd(),
-  frontendConfig.OPENAPI_SCHEMA_PATH
+const apiSchemaPaths = Object.entries(
+  frontendConfig.OPENAPI_SCHEMA_PATHS
+).reduce(
+  (
+    acc: Config['apiSchemaPaths'] & {
+      [key: string]: Config['apiSchemaPaths'][keyof Config['apiSchemaPaths']];
+    },
+    [key, value]
+  ) => {
+    acc[key] = convertEnvPathToAbsolute(process.cwd(), value);
+    return acc;
+  },
+  { gallery: '' }
 );
 
-const openapiSchema: OpenapiSchema = JSON.parse(
-  fs.readFileSync(openapiSchemaPath, 'utf8')
+const apiSchemas = Object.entries(frontendConfig.OPENAPI_SCHEMA_PATHS).reduce(
+  (
+    acc: Config['apiSchemas'] & {
+      [key: string]: Config['apiSchemas'][keyof Config['apiSchemas']];
+    },
+    [key, value]
+  ) => {
+    acc[key] = JSON.parse(fs.readFileSync(value, 'utf8'));
+    return acc;
+  },
+  { gallery: {} as GalleryApiSchema }
 );
 
 export const importedConfig: Config = {
@@ -144,7 +164,7 @@ export const importedConfig: Config = {
   frontendRoutes: sharedConfig.FRONTEND_ROUTES,
   scopeNameMapping: sharedConfig.SCOPE_NAME_MAPPING,
   scopeIdMapping: Object.entries(sharedConfig.SCOPE_NAME_MAPPING).reduce(
-    (acc, [key, value]) => {
+    (acc: Config['scopeIdMapping'], [key, value]) => {
       acc[value] = key;
       return acc;
     },
@@ -153,20 +173,20 @@ export const importedConfig: Config = {
   visibilityLevelNameMapping: sharedConfig.VISIBILITY_LEVEL_NAME_MAPPING,
   visibilityLevelIdMapping: Object.entries(
     sharedConfig.VISIBILITY_LEVEL_NAME_MAPPING
-  ).reduce((acc, [key, value]) => {
+  ).reduce((acc: Config['visibilityLevelIdMapping'], [key, value]) => {
     acc[value] = key;
     return acc;
   }, {} as {}),
   permissionLevelNameMapping: sharedConfig.PERMISSION_LEVEL_NAME_MAPPING,
   permissionLevelIdMapping: Object.entries(
     sharedConfig.PERMISSION_LEVEL_NAME_MAPPING
-  ).reduce((acc, [key, value]) => {
+  ).reduce((acc: Config['permissionLevelIdMapping'], [key, value]) => {
     acc[value] = key;
     return acc;
   }, {} as {}),
   userRoleNameMapping: sharedConfig.USER_ROLE_NAME_MAPPING,
   userRoleIdMapping: Object.entries(sharedConfig.USER_ROLE_NAME_MAPPING).reduce(
-    (acc, [key, value]) => {
+    (acc: Config['userRoleIdMapping'], [key, value]) => {
       acc[value] = key;
       return acc;
     },
@@ -176,6 +196,6 @@ export const importedConfig: Config = {
   otpLength: sharedConfig.OTP_LENGTH,
   googleClientId: sharedConfig.GOOGLE_CLIENT_ID,
   vite: frontendConfig.VITE,
-  openapiSchemaPath: openapiSchemaPath,
-  openapiSchema: openapiSchema,
+  apiSchemaPaths,
+  apiSchemas,
 };

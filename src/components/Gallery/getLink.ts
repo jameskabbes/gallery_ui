@@ -1,12 +1,18 @@
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import { config } from '../../config/config';
 
 export function getGalleryLink(
   galleryId: components['schemas']['GalleryPublic']['id'] | null
 ): string {
-  if (!galleryId) {
-    return config.frontendRoutes.galleries;
+  if (config.frontendRoutes.galleries === undefined) {
+    throw new Error(
+      'Frontend routes for galleries are not defined in the config.'
+    );
   } else {
-    return `${config.frontendRoutes.galleries}/${galleryId}`;
+    if (!galleryId) {
+      return config.frontendRoutes.galleries;
+    } else {
+      return `${config.frontendRoutes.galleries}/${galleryId}`;
+    }
   }
 }

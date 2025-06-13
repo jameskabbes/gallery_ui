@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  Ref,
 } from 'react';
 import { ModalsContextType, ModalType } from '../types';
 
@@ -40,11 +41,12 @@ export function ModalsContextProvider({
   }, [keys]);
 
   useEffect(() => {
-    setActiveModal(
+    const lastKey =
       keysRef.current.length > 0
-        ? modalsRef.current[keysRef.current[keysRef.current.length - 1]]
-        : null
-    );
+        ? keysRef.current[keysRef.current.length - 1]
+        : undefined;
+
+    setActiveModal(lastKey ? modalsRef.current[lastKey] || null : null);
   }, [activeModalVersion.current]);
 
   const pushModals: ModalsContextType['pushModals'] = useCallback((modals) => {

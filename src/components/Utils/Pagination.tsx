@@ -22,7 +22,7 @@ export function Pagination({
   count,
   total,
 }: PaginationProps) {
-  const debounceTimeout = useRef(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [debouncedOffset, setDebouncedOffset] = useState(offset);
   const [debouncedLoading, setDebouncedLoading] = useState(false);
   const [leftDisabled, setLeftDisabled] = useState(false);
@@ -52,8 +52,8 @@ export function Pagination({
   }, [debouncedOffset, offset]);
 
   useEffect(() => {
-    setLeftDisabled(debouncedOffset === 0 || total === null);
-    setRightDisabled(debouncedOffset + limit >= total || total === null);
+    setLeftDisabled(total === null || debouncedOffset === 0);
+    setRightDisabled(total === null || debouncedOffset + limit >= total);
   }, [debouncedOffset, limit, total]);
 
   const handleLeftClick = () => {

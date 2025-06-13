@@ -3,7 +3,6 @@ import {
   ValidatedInputState,
   ToastContextType,
   AuthContextType,
-  defaultValidatedInputState,
   ModalsContextType,
   OrderByState,
   ArrayElement,
@@ -11,8 +10,10 @@ import {
   ModalUpdateType,
   GetElementTypeFromArray,
 } from '../../types';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
+
 import { useApiCall } from '../../utils/api';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import {
   deleteApiKey,
   postApiKey,
@@ -246,12 +247,12 @@ function UpdateApiKey({
             }}
             checkAvailability={true}
             minLength={
-              config.openapiSchema.components.schemas.ApiKeyCreate.properties
-                .name.minLength
+              config.apiSchemas['gallery'].components.schemas.ApiKeyCreate
+                .properties.name.minLength
             }
             maxLength={
-              config.openapiSchema.components.schemas.ApiKeyCreate.properties
-                .name.maxLength
+              config.apiSchemas['gallery'].components.schemas.ApiKeyCreate
+                .properties.name.maxLength
             }
             required={true}
             checkValidity={true}
@@ -409,12 +410,12 @@ function AddApiKey({
               id="api-key-name"
               type="text"
               minLength={
-                config.openapiSchema.components.schemas.ApiKeyCreate.properties
-                  .name.minLength
+                config.apiSchemas['gallery'].components.schemas.ApiKeyCreate
+                  .properties.name.minLength
               }
               maxLength={
-                config.openapiSchema.components.schemas.ApiKeyCreate.properties
-                  .name.maxLength
+                config.apiSchemas['gallery'].components.schemas.ApiKeyCreate
+                  .properties.name.maxLength
               }
               required={true}
               checkValidity={true}

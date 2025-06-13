@@ -32,6 +32,7 @@ export function AuthModalsContextProvider({
         if (prev !== null) {
           modalsContext.deleteModals([prev]);
         }
+        return null;
       } else {
         const modal: ModalType = {
           key: modalType,

@@ -1,80 +1,59 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { postGalleryFile } from '../../services/apiServices';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '../../contexts/Auth';
 import { AxiosProgressEvent } from 'axios';
 import {
   AuthContextType,
-  defaultValidatedInputState,
   ModalsContextType,
   ValidatedInputState,
 } from '../../types';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
+
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import { Button2, ButtonSubmit } from '../Utils/Button';
 import { Surface } from '../Utils/Surface';
 import { CheckOrX } from '../Form/CheckOrX';
 import { IoClose } from 'react-icons/io5';
 import { ModalsContext } from '../../contexts/Modals';
+import { uploadFile } from '../../utils/uploadFile';
 
 interface FileProgressProps {
   file: File;
   authContext: AuthContextType;
-  galleryId: string;
+  galleryId: components['schemas']['GalleryPublic']['id'];
 }
 
 function FileProgress({ file, authContext, galleryId }: FileProgressProps) {
   const [uploadProgress, setUploadProgress] = useState<
     ValidatedInputState<number>
   >({
-    value: 0,
-    error: null,
-    status: 'loading',
+    ...defaultValidatedInputState<number>(0),
   });
 
-  console.log(file);
-
-  const handleFileUpload = async () => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const onUploadProgress = (event: AxiosProgressEvent) => {
-      if (event.lengthComputable) {
-        const percentComplete = Math.round((event.loaded / event.total) * 100);
+  useEffect(() => {
+    async function upload() {
+      try {
+        const result = await uploadFile<any>(
+          '/galleries/{gallery_id}/upload/',
+          file,
+          (progress) => {
+            setUploadProgress((prev) => ({
+              ...prev,
+              value: progress,
+              status: progress === 100 ? 'valid' : 'loading',
+            }));
+          }
+        );
+      } catch (error) {
         setUploadProgress((prev) => ({
           ...prev,
-          value: percentComplete,
+          status: 'invalid',
+          error: 'Upload failed',
         }));
+        console.error('File upload failed:', error);
       }
-    };
-
-    const response = await postGalleryFile.call({
-      authContext: authContext,
-      data: {
-        file: formData.get('file') as string,
-      },
-      pathParams: {
-        gallery_id: galleryId,
-      },
-      onUploadProgress: onUploadProgress,
-    });
-
-    if (response.status === 201) {
-      const data = response.data as (typeof postGalleryFile.responses)['201'];
-      setUploadProgress((prev) => ({
-        ...prev,
-        status: 'valid',
-      }));
-    } else {
-      setUploadProgress((prev) => ({
-        ...prev,
-        status: 'invalid',
-        error: 'Failed to upload file',
-      }));
     }
-  };
-
-  useEffect(() => {
-    handleFileUpload();
-  }, [file, authContext, galleryId]);
+    upload();
+  }, []);
 
   return (
     <div>

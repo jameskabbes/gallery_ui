@@ -2,16 +2,19 @@ import React, { useEffect, useState, useContext } from 'react';
 import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
-import { components } from '../../openapi_schema_client';
+import { components } from '../../gallery_api_schema_client';
 import {
   patchMe,
   getIsApiKeyAvailable,
   getIsUserUsernameAvailable,
 } from '../../services/apiServices';
-import { defaultValidatedInputState, ValidatedInputState } from '../../types';
+import { ValidatedInputState } from '../../types';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { Button1, Button2 } from '../Utils/Button';
 import { useConfirmationModal } from '../../utils/useConfirmationModal';
+import { updateAuthFromFetchResponse } from '../../utils/api';
+import { start } from 'repl';
 
 interface Props {
   user: components['schemas']['UserPrivate'];
@@ -23,7 +26,7 @@ export function UpdateUsername({ user }: Props) {
   >(user.username === null ? '' : user.username);
 
   const [username, setUsername] = useState<ValidatedInputState<string>>({
-    ...defaultValidatedInputState<string>(startingUsername),
+    ...defaultValidatedInputState<string>(startingUsername ?? ''),
   });
   const [valid, setValid] = useState<boolean>(false);
   const [modified, setModified] = useState<boolean>(false);
@@ -48,25 +51,22 @@ export function UpdateUsername({ user }: Props) {
       message: 'Updating username...',
     });
 
-    const response = await patchMe.call({
-      authContext,
-      data: {
-        username,
-      },
-    });
+    const { data, response } = updateAuthFromFetchResponse(
+      await patchMe({
+        body: {
+          username: username,
+        },
+      }),
+      authContext
+    );
 
     setLoading(false);
 
-    if (response.status === 200) {
-      const apiData = response.data as (typeof patchMe.responses)['200'];
+    if (response.ok) {
       setStartingUsername(username ? username : '');
       toastContext.update(toastId, {
         message: 'Updated username',
         type: 'success',
-      });
-      authContext.setState({
-        ...authContext.state,
-        user: apiData,
       });
     } else {
       toastContext.update(toastId, {
@@ -84,15 +84,18 @@ export function UpdateUsername({ user }: Props) {
   }
 
   async function isUsernameAvailable() {
-    return (
-      (
-        await getIsUserUsernameAvailable.call({
-          pathParams: {
-            username: username.value,
-          },
-        })
-      ).status === 200
-    );
+    const { data } = await getIsUserUsernameAvailable({
+      params: {
+        path: {
+          username: username.value,
+        },
+      },
+    });
+    if (data === undefined) {
+      return false;
+    } else {
+      return data.available;
+    }
   }
 
   return (
@@ -106,12 +109,12 @@ export function UpdateUsername({ user }: Props) {
             id="username"
             type="text"
             minLength={
-              config.openapiSchema.components.schemas.UserUpdate.properties
-                .username.anyOf[0]?.minLength
+              config.apiSchemas['gallery'].components.schemas.UserUpdate
+                .properties.username.anyOf[0]?.minLength
             }
             maxLength={
-              config.openapiSchema.components.schemas.UserUpdate.properties
-                .username.anyOf[0]?.maxLength
+              config.apiSchemas['gallery'].components.schemas.UserUpdate
+                .properties.username.anyOf[0]?.maxLength
             }
             checkValidity={true}
             checkAvailability={true}
@@ -130,7 +133,7 @@ export function UpdateUsername({ user }: Props) {
             className="flex-1"
             onClick={(e) => {
               setUsername({
-                ...defaultValidatedInputState<string>(startingUsername),
+                ...defaultValidatedInputState<string>(startingUsername ?? ''),
               });
             }}
             disabled={!modified}

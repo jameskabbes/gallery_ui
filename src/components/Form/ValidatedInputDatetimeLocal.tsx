@@ -40,30 +40,34 @@ export function ValidatedInputDatetimeLocal({
   const [dateString, setDateString] = useState<string>('');
 
   useEffect(() => {
-    if (state.value) {
-      setDateString(() => {
+    setDateString(() => {
+      if (state.value !== null) {
         return new Date(
           state.value.getTime() - state.value.getTimezoneOffset() * 60000
         )
           .toISOString()
           .slice(0, 16);
-      });
-    }
+      } else {
+        return '';
+      }
+    });
   }, [state.value]);
 
   return (
     <Surface>
       <div className="flex flex-row items-center justify-between space-x-2 input-datetime-local-container">
         <InputTextBase
+          type="datetime-local"
           value={dateString}
-          setValue={(value: string) => {
-            setDateString(value);
+          setValue={(value) => {
+            const stringValue = typeof value === 'string' ? value : '';
+            setDateString(stringValue);
 
-            const checkValidReturn = isDatetimeValid(value);
+            const checkValidReturn = isDatetimeValid(stringValue);
             if (checkValidReturn.valid) {
               setState((prev) => ({
                 ...prev,
-                value: new Date(value),
+                value: new Date(stringValue),
                 status: 'valid',
                 error: null,
               }));
@@ -72,11 +76,13 @@ export function ValidatedInputDatetimeLocal({
                 ...prev,
                 value: null,
                 status: 'invalid',
-                error: checkValidReturn.message,
+                error:
+                  checkValidReturn.message === undefined
+                    ? null
+                    : checkValidReturn.message,
               }));
             }
           }}
-          type="datetime-local"
           className={'dark:[color-scheme:dark]' + className}
           {...rest}
         />

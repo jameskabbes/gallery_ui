@@ -51,7 +51,12 @@ export function ValidatedInputToggle({
       >
         <InputCheckboxBase
           checked={state.value}
-          setChecked={(value) => setState((prev) => ({ ...prev, value }))}
+          setChecked={(value) =>
+            setState((prev) => ({
+              ...prev,
+              value: value === undefined ? false : value,
+            }))
+          }
           className="opacity-0 absolute h-0 w-0 inset-0"
           {...inputProps}
         />

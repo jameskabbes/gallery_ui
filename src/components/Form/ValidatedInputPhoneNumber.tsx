@@ -96,7 +96,7 @@ export function ValidatedInputPhoneNumber({
     } else {
       setState((prev) => ({
         ...prev,
-        value: a,
+        value: '' as T,
         status: 'invalid',
         error: 'Invalid phone number',
       }));

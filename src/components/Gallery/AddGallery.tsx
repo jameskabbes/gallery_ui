@@ -1,11 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
-import {
-  ModalsContextType,
-  ValidatedInputState,
-  defaultValidatedInputState,
-} from '../../types';
-import { paths, operations, components } from '../../openapi_schema_client';
+import { ModalsContextType, ValidatedInputState } from '../../types';
+import { paths, operations, components } from '../../gallery_api_schema_client';
 import { postGallery, getIsGalleryAvailable } from '../../services/apiServices';
+import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
@@ -15,9 +12,10 @@ import { RadioButton1 } from '../Utils/RadioButton';
 import { useValidatedInput } from '../../utils/useValidatedInput';
 import { CheckOrX } from '../Form/CheckOrX';
 import { config } from '../../config/config';
+import { updateAuthFromFetchResponse } from '../../utils/api';
 
 interface AddGalleryProps {
-  onSuccess: (gallery: (typeof postGallery.responses)['200']) => void;
+  onSuccess: (gallery: components['schemas']['GalleryPublic']) => void;
   modalsContext: ModalsContextType;
   parentGalleryId: components['schemas']['GalleryPublic']['id'];
 }
@@ -66,19 +64,20 @@ export function AddGallery({
     checkAvailability: true,
     checkValidity: true,
     isAvailable: async () => {
-      const response = await getIsGalleryAvailable.call({
-        authContext,
-        params: {
-          name: name.value,
-          parent_id: parentGalleryId,
-          ...(date.value !== '' && { date: date.value }),
-        },
-      });
-      if (response.status === 200) {
-        return true;
-      } else {
-        return false;
-      }
+      const { data, response } = updateAuthFromFetchResponse(
+        await getIsGalleryAvailable({
+          params: {
+            query: {
+              name: name.value,
+              parent_id: parentGalleryId,
+              ...(date.value !== '' && { date: date.value }),
+            },
+          },
+        }),
+        authContext
+      );
+
+      return response.ok === true;
     },
     isValid: (value) => {
       return value.date.status === 'valid' && value.name.status === 'valid'
@@ -107,27 +106,34 @@ export function AddGallery({
 
     modalsContext.deleteModals([addGalleryModalKey]);
 
-    const { data, status } = await postGallery.call({
-      authContext,
-      data: {
-        name: name.value,
-        parent_id: parentGalleryId,
-        visibility_level:
-          config.visibilityLevelNameMapping[visibilityLevelName.value],
-        ...(date.value !== '' && { date: date.value }),
-      },
-    });
-    if (status === 200) {
-      toastContext.update(toastId, {
-        message: 'Gallery added',
-        type: 'success',
-      });
-      onSuccess(data as (typeof postGallery.responses)['200']);
-    } else {
-      toastContext.update(toastId, {
-        message: 'Error adding gallery',
-        type: 'error',
-      });
+    const visibilityLevel =
+      config.visibilityLevelNameMapping[visibilityLevelName.value];
+
+    if (visibilityLevel !== undefined) {
+      const { data, response } = updateAuthFromFetchResponse(
+        await postGallery({
+          body: {
+            name: name.value,
+            parent_id: parentGalleryId,
+            visibility_level: visibilityLevel,
+            ...(date.value !== '' && { date: date.value }),
+          },
+        }),
+        authContext
+      );
+
+      if (response.ok && data !== undefined) {
+        toastContext.update(toastId, {
+          message: 'Gallery added',
+          type: 'success',
+        });
+        onSuccess(data);
+      } else {
+        toastContext.update(toastId, {
+          message: 'Error adding gallery',
+          type: 'error',
+        });
+      }
     }
   }
 
@@ -144,16 +150,16 @@ export function AddGallery({
               id="gallery-name"
               type="text"
               minLength={
-                config.openapiSchema.components.schemas.GalleryCreate.properties
-                  .name.minLength
+                config.apiSchemas['gallery'].components.schemas.GalleryCreate
+                  .properties.name.minLength
               }
               maxLength={
-                config.openapiSchema.components.schemas.GalleryCreate.properties
-                  .name.maxLength
+                config.apiSchemas['gallery'].components.schemas.GalleryCreate
+                  .properties.name.maxLength
               }
               pattern={
-                config.openapiSchema.components.schemas.GalleryCreate.properties
-                  .name.pattern
+                config.apiSchemas['gallery'].components.schemas.GalleryCreate
+                  .properties.name.pattern
               }
               required={true}
               checkValidity={true}

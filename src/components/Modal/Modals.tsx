@@ -31,7 +31,7 @@ export function Modals() {
   };
 
   function handleExit() {
-    if (!!activeModal) {
+    if (activeModal !== null && key !== null) {
       onExit();
       deleteModals([key]);
     }

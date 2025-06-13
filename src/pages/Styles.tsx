@@ -1,11 +1,8 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { DeviceContext } from '../contexts/Device';
-import { paths, operations, components } from '../openapi_schema_client';
-import {
-  defaultValidatedInputState,
-  ModalType,
-  ValidatedInputState,
-} from '../types';
+import { paths, operations, components } from '../gallery_api_schema_client';
+import { ModalType, ValidatedInputState } from '../types';
+import { defaultValidatedInputState } from '../utils/useValidatedInput';
 import { getStylesPage } from '../services/apiServices';
 import { useApiCall } from '../utils/api';
 import { ToastContext } from '../contexts/Toast';
@@ -49,8 +46,8 @@ export function Styles() {
   const [textState, setTextState] = useState<ValidatedInputState<string>>({
     ...defaultValidatedInputState<string>(''),
   });
-  const [dateState, setDateState] = useState<ValidatedInputState<Date>>({
-    ...defaultValidatedInputState<Date>(new Date()),
+  const [dateState, setDateState] = useState<ValidatedInputState<Date | null>>({
+    ...defaultValidatedInputState<Date | null>(new Date()),
   });
   const [radioState, setRadioState] = useState<
     ValidatedInputState<'Option 1' | 'Option 2' | 'Option 3'>
@@ -61,9 +58,9 @@ export function Styles() {
   });
 
   const [phoneNumber, setPhoneNumber] = useState<
-    ValidatedInputState<E164Number | null>
+    ValidatedInputState<E164Number>
   >({
-    ...defaultValidatedInputState<E164Number | null>(null),
+    ...defaultValidatedInputState<E164Number>('' as E164Number),
   });
 
   const { data, loading } = useApiCall(getStylesPage, []);

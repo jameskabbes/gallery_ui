@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { paths, components } from '../openapi_schema_client';
-import { apiClient } from './apiClient';
+import { paths, components } from '../gallery_api_schema_client';
 import { ApiService, AuthContextType } from '../types';
 import { config } from '../config/config';
-import { OpenapiSchema } from '../openapi_schema';
 import {
   HttpMethod,
   MediaType,

@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useReducer, createContext } from 'react';
-import { RequestSignUpContextType, defaultValidatedInputState } from '../types';
+import { RequestSignUpContextType } from '../types';
+import { defaultValidatedInputState } from '../utils/useValidatedInput';
 
 export const RequestSignUpContext = createContext<RequestSignUpContextType>({
-  email: null,
+  email: {
+    ...defaultValidatedInputState<RequestSignUpContextType['email']['value']>(
+      ''
+    ),
+  },
   setEmail: () => {},
   valid: false,
   setValid: () => {},
