@@ -4,6 +4,7 @@ import { paths as gallery_paths } from '../gallery_api_schema_client';
 
 export const galleryClient = createClient<gallery_paths>({
   baseUrl: config.backendUrl,
+  credentials: 'include',
 });
 
 // export const apiClient = axios.create({
