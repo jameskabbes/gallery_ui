@@ -71,7 +71,7 @@ function getQueryParamSchemas<TQueryParamKey extends string, V extends Record<TQ
 
   // Populate the object for each param
   for (const name of queryKeys) {
-    const param = queryParametersSchemaByType[name];
+    const param = queryParameterSchemasByType[name];
 
     if (param === undefined) {
       throw new Error(

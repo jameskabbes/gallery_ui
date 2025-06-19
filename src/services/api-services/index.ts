@@ -4,7 +4,6 @@ import {
   ApiSchemaClientParametersType,
   ApiSchemaParameter,
   ApiService,
-  ExtractOrNever,
   ApiSchemaParametersByType,
 } from '../../types';
 import { paths as GalleryApiClientPaths } from '../../gallery_api_schema_client';

@@ -61,8 +61,17 @@ export type ApiSchemaParametersByType<
 };
 
 export type ApiSchemaClientParametersType<TApiSchemaClientOperation> =
+  // Check if 'parameters' exists as a key
   'parameters' extends keyof TApiSchemaClientOperation
-    ? TApiSchemaClientOperation['parameters']
+    ? // Then check if the parameters object has the expected structure
+      TApiSchemaClientOperation['parameters'] extends {
+        query?: any;
+        path?: any;
+        cookie?: any;
+        header?: any;
+      }
+      ? TApiSchemaClientOperation['parameters']
+      : never
     : never;
 
 export interface ApiService<

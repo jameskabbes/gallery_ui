@@ -3,7 +3,7 @@ import { config } from '../../config/config';
 import { galleryClient } from '../../utils/apiClient';
 import { createApiServiceFactory } from '.';
 import { GalleryApiSchema } from '../../gallery_api_schema';
-import { ApiSchemaParameter } from '../../types';
+import { ApiSchemaClientParametersType, ApiSchemaParameter } from '../../types';
 // Auth
 
 const createGalleryService = createApiServiceFactory<paths, GalleryApiSchema>(
@@ -202,3 +202,7 @@ type g1 = typeof getApiKeysSettingsPage.parameterSchemasByType;
 type g2 = typeof getApiKeysSettingsPage.parameterSchemasClientByType;
 
 type as = g1['query']['limit'];
+
+type jj = ApiSchemaClientParametersType<
+  paths['/admin/user-access-tokens/users/{user_id}/']['get']
+>;
