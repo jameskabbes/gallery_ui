@@ -22,7 +22,7 @@ import {
   postRequestMagicLinkEmail,
   postRequestMagicLinkSMS,
   postLogInMagicLink,
-} from '../../services/apiServices';
+} from '../../services/api-services/gallery';
 import { Card1 } from '../Utils/Card';
 import { Surface } from '../Utils/Surface';
 import { updateAuthFromFetchResponse, useApiCall } from '../../utils/api';
@@ -59,7 +59,7 @@ export function RequestMagicLink() {
 
     if (requestMagicLinkContext.medium === 'email') {
       updateAuthFromFetchResponse(
-        await postRequestMagicLinkEmail({
+        await postRequestMagicLinkEmail.request({
           body: {
             email: requestMagicLinkContext.email.value,
           },
@@ -68,7 +68,7 @@ export function RequestMagicLink() {
       );
     } else if (requestMagicLinkContext.medium === 'sms') {
       updateAuthFromFetchResponse(
-        await postRequestMagicLinkSMS({
+        await postRequestMagicLinkSMS.request({
           body: {
             phone_number: requestMagicLinkContext.phoneNumber.value,
           },

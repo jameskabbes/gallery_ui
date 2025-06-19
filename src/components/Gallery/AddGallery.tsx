@@ -1,7 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ModalsContextType, ValidatedInputState } from '../../types';
 import { paths, operations, components } from '../../gallery_api_schema_client';
-import { postGallery, getIsGalleryAvailable } from '../../services/apiServices';
+import {
+  postGallery,
+  getIsGalleryAvailable,
+} from '../../services/api-services/gallery';
 import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 
 import { AuthContext } from '../../contexts/Auth';
@@ -65,7 +68,7 @@ export function AddGallery({
     checkValidity: true,
     isAvailable: async () => {
       const { data, response } = updateAuthFromFetchResponse(
-        await getIsGalleryAvailable({
+        await getIsGalleryAvailable.request({
           params: {
             query: {
               name: name.value,
@@ -111,7 +114,7 @@ export function AddGallery({
 
     if (visibilityLevel !== undefined) {
       const { data, response } = updateAuthFromFetchResponse(
-        await postGallery({
+        await postGallery.request({
           body: {
             name: name.value,
             parent_id: parentGalleryId,

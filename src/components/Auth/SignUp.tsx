@@ -1,7 +1,10 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { paths, operations, components } from '../../gallery_api_schema_client';
 
-import { postSignUp, postRequestSignUp } from '../../services/apiServices';
+import {
+  postSignUp,
+  postRequestSignUp,
+} from '../../services/api-services/gallery';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { config } from '../../config/config';
 
@@ -77,7 +80,7 @@ export function RequestSignUp() {
       requestSignUpContext.setLoading(true);
 
       const {} = updateAuthFromFetchResponse(
-        await postRequestSignUp({
+        await postRequestSignUp.request({
           body: {
             email: requestSignUpContext.email.value,
           },
@@ -179,7 +182,7 @@ export function VerifySignUp() {
   useEffect(() => {
     async function verifySignUp() {
       const { data, response } = updateAuthFromFetchResponse(
-        await postSignUp({
+        await postSignUp.request({
           body: {
             token: token === null ? '' : token,
           },

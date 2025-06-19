@@ -3,7 +3,7 @@ import { DeviceContext } from '../contexts/Device';
 import { paths, operations, components } from '../gallery_api_schema_client';
 import { ModalType, ValidatedInputState } from '../types';
 import { defaultValidatedInputState } from '../utils/useValidatedInput';
-import { getStylesPage } from '../services/apiServices';
+import { getStylesPage } from '../services/api-services/gallery';
 import { useApiCall } from '../utils/api';
 import { ToastContext } from '../contexts/Toast';
 import { AuthContext } from '../contexts/Auth';

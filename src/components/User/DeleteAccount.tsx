@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { deleteMe } from '../../services/apiServices';
+import { deleteMe } from '../../services/api-services/gallery';
 import {
   AuthContextType,
   ModalsContextType,
@@ -31,7 +31,7 @@ export function setDeleteAccountModal({
     });
 
     const { data, response } = await updateAuthFromFetchResponse(
-      await deleteMe(),
+      await deleteMe.request(),
       authContext
     );
 

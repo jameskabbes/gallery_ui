@@ -7,7 +7,7 @@ import {
   patchMe,
   getIsApiKeyAvailable,
   getIsUserUsernameAvailable,
-} from '../../services/apiServices';
+} from '../../services/api-services/gallery';
 import { ValidatedInputState } from '../../types';
 import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
@@ -52,7 +52,7 @@ export function UpdateUsername({ user }: Props) {
     });
 
     const { data, response } = updateAuthFromFetchResponse(
-      await patchMe({
+      await patchMe.request({
         body: {
           username: username,
         },
@@ -84,7 +84,7 @@ export function UpdateUsername({ user }: Props) {
   }
 
   async function isUsernameAvailable() {
-    const { data } = await getIsUserUsernameAvailable({
+    const { data } = await getIsUserUsernameAvailable.request({
       params: {
         path: {
           username: username.value,

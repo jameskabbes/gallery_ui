@@ -12,7 +12,7 @@ import {
   deleteGallery,
   getGalleryPage,
   postGallerySync,
-} from '../services/apiServices';
+} from '../services/api-services/gallery';
 
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { setAddGalleryModal } from '../components/Gallery/AddGallery';
@@ -57,7 +57,7 @@ export function Gallery({ root = false }: Props) {
     });
 
     const { data, error, response } = updateAuthFromFetchResponse(
-      await postGallerySync({
+      await postGallerySync.request({
         params: {
           path: {
             gallery_id: gallery.id,
@@ -89,7 +89,7 @@ export function Gallery({ root = false }: Props) {
     });
 
     const { data, error, response } = updateAuthFromFetchResponse(
-      await deleteGallery({
+      await deleteGallery.request({
         params: {
           path: {
             gallery_id: gallery.id,

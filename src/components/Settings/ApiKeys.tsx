@@ -23,7 +23,7 @@ import {
   getIsApiKeyAvailable,
   patchApiKey,
   getApiKeysSettingsPage,
-} from '../../services/apiServices';
+} from '../../services/api-services/gallery';
 import { ModalsContext } from '../../contexts/Modals';
 import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { IoCaretForward } from 'react-icons/io5';
@@ -55,11 +55,7 @@ type TModifyApiKeyScopeFunc = (
   scopeId: ScopeID
 ) => Promise<void>;
 type TAddApiKeyFunc = (
-  apiKeyCreate: Parameters<typeof postApiKey.call>[0]['data']
-) => Promise<boolean>;
-type TUpdateApiKeyFunc = (
-  apiKeyId: Parameters<typeof patchApiKey.call>[0]['pathParams']['api_key_id'],
-  apiKeyUpdate: Parameters<typeof patchApiKey.call>[0]['data']
+  apiKeyCreate: Awaited<ReturnType<typeof postApiKey>>['data']
 ) => Promise<boolean>;
 type TDeleteApiKeyFunc = (index: number) => Promise<boolean>;
 
@@ -76,7 +72,7 @@ function ApiKeyCodeModal({ apiKey, authContext }: ApiKeyCodeModalProps) {
   async function fetchJwt(apiKeyId: TApiKey['id']) {
     setLoading(true);
     setCopySuccess(false);
-    const { data, status } = await getApiKeyJwt.call({
+    const { data, status } = await getApiKeyJwt.request({
       authContext,
       pathParams: {
         api_key_id: apiKeyId,
@@ -232,7 +228,7 @@ function UpdateApiKey({
               if (name === apiKey.name) {
                 return true;
               } else {
-                const { status } = await getIsApiKeyAvailable.call({
+                const { status } = await getIsApiKeyAvailable.request({
                   authContext,
                   params: {
                     name: name,
@@ -356,7 +352,7 @@ function AddApiKey({
     checkAvailability: true,
     checkValidity: true,
     isAvailable: async (state) => {
-      const { status } = await getIsApiKeyAvailable.call({
+      const { status } = await getIsApiKeyAvailable.request({
         authContext,
         params: {
           name: state.name.value,
@@ -805,7 +801,7 @@ export function ApiKeys({
       };
     });
 
-    const { data, status } = await postApiKeyScope.call({
+    const { data, status } = await postApiKeyScope.request({
       authContext,
       pathParams: {
         api_key_id: apiKey.id,
@@ -840,7 +836,7 @@ export function ApiKeys({
       };
     });
 
-    const { data, status } = await deleteApiKeyScope.call({
+    const { data, status } = await deleteApiKeyScope.request({
       authContext,
       pathParams: {
         api_key_id: apiKey.id,
@@ -866,7 +862,7 @@ export function ApiKeys({
       message: 'Creating API Key...',
     });
 
-    const { data, status } = await postApiKey.call({
+    const { data, status } = await postApiKey.request({
       authContext,
       data: apiKeyCreate,
     });
@@ -904,7 +900,7 @@ export function ApiKeys({
       return updated;
     });
 
-    const { data, status } = await patchApiKey.call({
+    const { data, status } = await patchApiKey.request({
       authContext,
       pathParams: {
         api_key_id: apiKeyId,
@@ -952,7 +948,7 @@ export function ApiKeys({
     });
     setApiKeyCount((prev) => prev - 1);
 
-    const { data, status } = await deleteApiKey.call({
+    const { data, status } = await deleteApiKey.request({
       authContext,
       pathParams: {
         api_key_id: apiKeyId,

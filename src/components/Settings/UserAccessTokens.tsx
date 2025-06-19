@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContextType, ToastContextType } from '../../types';
-import { useApiCall } from '../../utils/api';
+import { updateAuthFromFetchResponse, useApiCall } from '../../utils/api';
 import { paths, operations, components } from '../../gallery_api_schema_client';
 import {
   deleteUserAccessToken,
+  getUserAccessTokens,
   getUserAccessTokensSettingsPage,
-} from '../../services/apiServices';
+} from '../../services/api-services/gallery';
 import { config } from '../../config/config';
 import { Card1 } from '../Utils/Card';
 import { Button1 } from '../Utils/Button';
@@ -13,53 +14,59 @@ import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { Loader1 } from '../Utils/Loader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Pagination } from '../Utils/Pagination';
+import { getQueryParamKeys } from '../../utils/queryParams';
+
+type TUserAccessToken = components['schemas']['UserAccessToken'];
+type TUserAccessTokens = Record<TUserAccessToken['id'], TUserAccessToken>;
+
+type QueryParams = NonNullable<
+  (typeof getUserAccessTokensSettingsPage.parameterSchemasClientByType)['query']
+>;
+type QueryParamKeys = keyof QueryParams;
+
+// const queryParamKeys = getQueryParamKeys(
+//   getUserAccessTokensSettingsPage.parametersSchemaByType['query'] as Record<
+//     QueryParamKeys,
+//     any
+//   >
+// );
+
+type a = typeof getUserAccessTokensSettingsPage.parameterSchemasByType;
+type b = typeof getUserAccessTokensSettingsPage.parameterSchemasClientByType;
+
+// const queryParamSchemas: QueryParamSchemas = (() => {})();
+
+// getUserAccessTokensSettingsPage.parametersSchemaByType['query']
 
 interface Props {
   authContext: AuthContextType;
   toastContext: ToastContextType;
 }
 
-type TUserAccessToken = components['schemas']['UserAccessToken'];
-type TUserAccessTokens = Record<TUserAccessToken['id'], TUserAccessToken>;
-
-export function UserAccessTokens({
-  authContext,
-  toastContext,
-}: Props): JSX.Element {
+export function UserAccessTokens({ authContext, toastContext }: Props) {
   const { activateButtonConfirmation } = useConfirmationModal();
 
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
 
-  type Params = Parameters<
-    typeof getUserAccessTokensSettingsPage.call
-  >[0]['params'];
-  type ParamKey = keyof Params;
-
-  const queryParameters =
-    config.apiSchemas['gallery'].paths['/pages/settings/api-keys/']['get'][
-      'parameters'
-    ];
-
-  const queryParamObjects: Record<ParamKey, any> = queryParameters.reduce(
-    (acc, param) => {
-      acc[param.name as ParamKey] = param;
-      return acc;
-    },
-    {} as Record<ParamKey, any>
+  const [queryParams, setQueryParams] = useState<QueryParams>(
+    () =>
+      Object.fromEntries(
+        queryKeys.map((key) => [key, queryParamSchemas[key].default])
+      ) as QueryParams
   );
 
-  function getLimitFromQuery(limit: string): Params['limit'] {
-    if (!limit) {
-      return queryParamObjects['limit'].schema.default;
+  function getLimitFromQuery(limit: string | null): QueryParams['limit'] {
+    if (limit === null) {
+      return queryParamSchemas['limit'].default;
     } else {
       const limitInt = parseInt(limit, 10);
       if (isNaN(limitInt)) {
-        return queryParamObjects['limit'].schema.default;
+        return queryParamSchemas['limit'].default;
       } else {
         return Math.min(
-          queryParamObjects['limit'].schema.maximum,
-          Math.max(queryParamObjects['limit'].schema.minimum, limitInt)
+          queryParamSchemas['limit'].maximum,
+          Math.max(queryParamSchemas['limit'].minimum, limitInt)
         );
       }
     }
@@ -100,8 +107,9 @@ export function UserAccessTokens({
     }
   }, [limit, offset]);
 
-  const [userAccessTokenCount, setUserAccessTokenCount] =
-    useState<number>(null);
+  const [userAccessTokenCount, setUserAccessTokenCount] = useState<
+    number | null
+  >(null);
   const [userAccessTokens, setUserAccessTokens] = useState<TUserAccessTokens>(
     {}
   );
@@ -109,12 +117,15 @@ export function UserAccessTokens({
     TUserAccessToken['id'][]
   >([]);
 
-  const { data, loading, status, refetch } = useApiCall(
+  const { data, loading, refetch } = useApiCall(
     getUserAccessTokensSettingsPage,
+    [],
     {
       params: {
-        limit: limit,
-        offset: offset,
+        query: {
+          limit: limit,
+          offset: offset,
+        },
       },
     }
   );
@@ -131,27 +142,20 @@ export function UserAccessTokens({
   }, [offset, limit]);
 
   useEffect(() => {
-    if (!loading) {
-      if (status === 200) {
-        const apiData =
-          data as (typeof getUserAccessTokensSettingsPage.responses)['200'];
-
-        setUserAccessTokenCount(apiData.user_access_token_count);
-        setUserAccessTokens(() => {
-          const newUserAccessTokens: TUserAccessTokens = {};
-          for (const userAccessToken of apiData.user_access_tokens) {
-            newUserAccessTokens[userAccessToken.id] = userAccessToken;
-          }
-          return newUserAccessTokens;
-        });
-        setUserAccessTokenIdIndex(() =>
-          apiData.user_access_tokens.map(
-            (userAccessToken) => userAccessToken.id
-          )
-        );
-      }
+    if (data !== undefined) {
+      setUserAccessTokenCount(data.user_access_token_count);
+      setUserAccessTokens(() => {
+        const newUserAccessTokens: TUserAccessTokens = {};
+        for (const userAccessToken of data.user_access_tokens) {
+          newUserAccessTokens[userAccessToken.id] = userAccessToken;
+        }
+        return newUserAccessTokens;
+      });
+      setUserAccessTokenIdIndex(() =>
+        data.user_access_tokens.map((userAccessToken) => userAccessToken.id)
+      );
     }
-  }, [data, loading, status]);
+  }, [data]);
 
   async function handleDeleteUserAccessToken(index: number) {
     const sessionId = userAccessTokenIdIndex[index];
@@ -168,12 +172,16 @@ export function UserAccessTokens({
 
     setUserAccessTokenCount((prev) => prev - 1);
 
-    const { data, status } = await deleteUserAccessToken.call({
-      authContext,
-      pathParams: {
-        user_access_token_id: sessionId,
-      },
-    });
+    const { data } = updateAuthFromFetchResponse(
+      await deleteUserAccessToken.request({
+        params: {
+          path: {
+            user_access_token_id: sessionId,
+          },
+        },
+      }),
+      authContext
+    );
 
     if (status === 204) {
       toastContext.update(toastId, {

@@ -39,18 +39,22 @@ export function updateAuthFromFetchResponse<
 }
 
 export function useApiCall<
-  TMethod extends HttpMethod,
-  TPath extends PathsWithMethod<paths, TMethod>,
+  TPaths extends {},
+  TApiSchema,
+  TMethod extends HttpMethod & keyof TPaths[TPath],
+  TPath extends PathsWithMethod<TPaths, TMethod>,
   TMedia extends MediaType = `${string}/${string}`
 >(
-  apiService: ApiService<TMethod, TPath>,
+  apiService: ApiService<TPaths, TApiSchema, TMethod, TPath, TMedia>,
   dependencies: any[],
-  ...init: Parameters<ApiService<TMethod, TPath>>
+  ...init: Parameters<
+    ApiService<TPaths, TApiSchema, TMethod, TPath, TMedia>['request']
+  >
 ): Partial<
-  FetchResponse<
-    paths[TPath][TMethod] & Record<string, any>,
-    MaybeOptionalInit<paths[TPath], TMethod>,
-    TMedia
+  Awaited<
+    ReturnType<
+      ApiService<TPaths, TApiSchema, TMethod, TPath, TMedia>['request']
+    >
   >
 > & {
   refetch: () => Promise<void>;
@@ -60,10 +64,10 @@ export function useApiCall<
   const [loading, setLoading] = useState<boolean>(true);
   const [response, setResponse] = useState<
     Partial<
-      FetchResponse<
-        paths[TPath][TMethod] & Record<string, any>,
-        MaybeOptionalInit<paths[TPath], TMethod>,
-        TMedia
+      Awaited<
+        ReturnType<
+          ApiService<TPaths, TApiSchema, TMethod, TPath, TMedia>['request']
+        >
       >
     >
   >({});
@@ -73,7 +77,7 @@ export function useApiCall<
     setLoading(true);
     try {
       const result = updateAuthFromFetchResponse(
-        await apiService(...init),
+        await apiService.request(...init),
         authContext
       );
       setResponse(result);

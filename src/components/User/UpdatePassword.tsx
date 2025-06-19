@@ -6,7 +6,7 @@ import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { components } from '../../gallery_api_schema_client';
 import { ToastContext } from '../../contexts/Toast';
-import { patchMe } from '../../services/apiServices';
+import { patchMe } from '../../services/api-services/gallery';
 import { Button1 } from '../Utils/Button';
 import { isPasswordValid } from '../../services/isPasswordValid';
 import { updateAuthFromFetchResponse } from '../../utils/api';
@@ -57,7 +57,7 @@ export function UpdatePassword() {
       });
 
       const { data, response } = updateAuthFromFetchResponse(
-        await patchMe({
+        await patchMe.request({
           body: {
             password: password.value,
           },

@@ -1,4 +1,4 @@
-import { postLogOut } from '../../services/apiServices';
+import { postLogOut } from '../../services/api-services/gallery';
 import { AuthContextType, ToastContextType } from '../../types';
 import { updateAuthFromFetchResponse } from '../../utils/api';
 
@@ -10,7 +10,7 @@ export async function logOut(
     message: 'Logging out...',
   });
   const { response, data, error } = updateAuthFromFetchResponse(
-    await postLogOut(),
+    await postLogOut.request(),
     authContext
   );
 

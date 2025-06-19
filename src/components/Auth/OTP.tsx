@@ -16,7 +16,7 @@ import {
   postRequestOTPEmail,
   postRequestOTPSMS,
   postLogInOTPEmail,
-} from '../../services/apiServices';
+} from '../../services/api-services/gallery';
 import { Button2, ButtonSubmit } from '../Utils/Button';
 import { isEmailValid } from '../../services/isEmailValid';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
@@ -54,7 +54,7 @@ export function RequestOTP() {
 
     if (requestOTPContext.medium === 'email') {
       updateAuthFromFetchResponse(
-        await postRequestOTPEmail({
+        await postRequestOTPEmail.request({
           body: {
             email: requestOTPContext.email.value,
           },
@@ -63,7 +63,7 @@ export function RequestOTP() {
       );
     } else if (requestOTPContext.medium === 'sms') {
       updateAuthFromFetchResponse(
-        await postRequestOTPSMS({
+        await postRequestOTPSMS.request({
           body: {
             phone_number: requestOTPContext.phoneNumber.value,
           },
@@ -246,7 +246,7 @@ export function VerifyOTP() {
 
     if (requestOTPContext.medium === 'email') {
       const { response } = updateAuthFromFetchResponse(
-        await postLogInOTPEmail({
+        await postLogInOTPEmail.request({
           body: {
             code: code.value,
             email: requestOTPContext.email.value,
@@ -259,7 +259,7 @@ export function VerifyOTP() {
       }
     } else if (requestOTPContext.medium === 'sms') {
       const { response } = updateAuthFromFetchResponse(
-        await postLogInOTPPhoneNumber({
+        await postLogInOTPPhoneNumber.request({
           body: {
             code: code.value,
             phone_number: requestOTPContext.phoneNumber.value,

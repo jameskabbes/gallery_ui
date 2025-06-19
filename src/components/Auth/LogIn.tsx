@@ -15,7 +15,7 @@ import { ValidatedInputCheckbox } from '../Form/ValidatedInputCheckbox';
 import { Button2, ButtonSubmit } from '../Utils/Button';
 import { Loader1, Loader2 } from '../Utils/Loader';
 import { Surface } from '../Utils/Surface';
-import { postLogInPassword } from '../../services/apiServices';
+import { postLogInPassword } from '../../services/api-services/gallery';
 import { ModalsContext } from '../../contexts/Modals';
 import { AuthModalType } from '../../types';
 import { useLogInWithGoogle } from './useLogInWithGoogle';
@@ -60,7 +60,7 @@ export function LogIn() {
       logInContext.setLoading(true);
 
       const { data, error, response } = updateAuthFromFetchResponse(
-        await postLogInPassword({
+        await postLogInPassword.request({
           body: {
             username: logInContext.username.value,
             password: logInContext.password.value,

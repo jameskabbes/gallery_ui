@@ -9,7 +9,7 @@ import { AuthModalsContext } from '../contexts/AuthModals';
 import { FileUploader } from '../components/Gallery/FileUploader';
 
 import { Link } from 'react-router-dom';
-import { getHomePage } from '../services/apiServices';
+import { getHomePage } from '../services/api-services/gallery';
 import { AuthContext } from '../contexts/Auth';
 
 export function Home() {

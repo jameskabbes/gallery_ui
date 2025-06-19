@@ -1,5 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import { postLogInGoogle } from '../../services/apiServices';
+import { postLogInGoogle } from '../../services/api-services/gallery';
 import { useContext } from 'react';
 import { ToastContext } from '../../contexts/Toast';
 import { AuthContext } from '../../contexts/Auth';
@@ -18,7 +18,7 @@ export function useLogInWithGoogle() {
       });
 
       const { data, response } = updateAuthFromFetchResponse(
-        await postLogInGoogle({
+        await postLogInGoogle.request({
           body: {
             id_token: res.access_token,
           },

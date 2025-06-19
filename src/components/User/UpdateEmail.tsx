@@ -6,7 +6,7 @@ import { ToastContext } from '../../contexts/Toast';
 import { isEmailValid } from '../../services/isEmailValid';
 import { ValidatedInputState } from '../../types';
 import { defaultValidatedInputState } from '../../utils/useValidatedInput';
-import { patchMe } from '../../services/apiServices';
+import { patchMe } from '../../services/api-services/gallery';
 import { ValidatedInputString } from '../Form/ValidatedInputString';
 import { Button1, Button2, ButtonSubmit } from '../Utils/Button';
 import { updateAuthFromFetchResponse } from '../../utils/api';
@@ -43,7 +43,7 @@ export function UpdateEmail({ user }: Props) {
       });
 
       const { data, response } = updateAuthFromFetchResponse(
-        await patchMe({
+        await patchMe.request({
           body: {
             email: email.value,
           },

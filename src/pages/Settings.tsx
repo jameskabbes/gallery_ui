@@ -15,7 +15,7 @@ import { ApiKeys } from '../components/Settings/ApiKeys';
 import { useApiCall } from '../utils/api';
 import { Surface } from '../components/Utils/Surface';
 import { Button2 } from '../components/Utils/Button';
-import { getSettingsPage } from '../services/apiServices';
+import { getSettingsPage } from '../services/api-services/gallery';
 
 export function Settings(): JSX.Element {
   const authContext = useContext(AuthContext);

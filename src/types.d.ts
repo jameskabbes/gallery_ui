@@ -21,22 +21,96 @@ export type MyInitParam<Init> = RequiredKeysOf<Init> extends never
   ? [(Init & { [key: string]: unknown })?]
   : [Init & { [key: string]: unknown }];
 
-export type ApiService<
+// Helper type that works with both required and optional keys
+type SafeKeys<T, K extends string> =
+  // Match both { key: value } and { key?: value } patterns
+  T extends { [P in K]?: infer U }
+    ? keyof U extends never
+      ? never
+      : Record<keyof U & string, any>
+    : never;
+
+// Helper type for parameter schema mapping
+type ParameterTypeHelper<TParams, TKey extends string, TValueType> = SafeKeys<
+  TParams,
+  TKey
+> extends never
+  ? never
+  : Record<
+      keyof (TParams extends { [P in TKey]?: infer R } ? R : {}),
+      TValueType
+    >;
+
+// Simplified main type using the helper
+export type ApiSchemaParametersByType<
+  TApiSchemaClientParameters extends {
+    query?: TApiSchemaClientQuery;
+    path?: TApiSchemaClientPath;
+    cookie?: TApiSchemaClientCookie;
+    header?: TApiSchemaClientHeader;
+  },
+  TQuery,
+  TPath,
+  TCookie,
+  THeader
+> = {
+  query: ParameterTypeHelper<TApiSchemaClientParameters, 'query', TQuery>;
+  path: ParameterTypeHelper<TApiSchemaClientParameters, 'path', TPath>;
+  cookie: ParameterTypeHelper<TApiSchemaClientParameters, 'cookie', TCookie>;
+  header: ParameterTypeHelper<TApiSchemaClientParameters, 'header', THeader>;
+};
+
+export type ApiSchemaClientParametersType<TApiSchemaClientOperation> =
+  'parameters' extends keyof TApiSchemaClientOperation
+    ? TApiSchemaClientOperation['parameters']
+    : never;
+
+export interface ApiService<
+  TPaths,
+  TApiSchema,
   TMethod extends HttpMethod,
-  TPath extends PathsWithMethod<paths, TMethod>
-> = <TInit extends MaybeOptionalInit<paths[TPath], TMethod>>(
-  ...init: MyInitParam<TInit>
-) => Promise<
-  FetchResponse<paths[TPath][TMethod] & Record<string, any>, TInit, MediaType>
->;
+  TPath extends PathsWithMethod<TPaths, TMethod>,
+  TMediaType extends MediaType = `${string}/${string}`,
+  TInit extends MaybeOptionalInit<TPaths[TPath], TMethod> = MaybeOptionalInit<
+    TPaths[TPath],
+    TMethod
+  >
+> {
+  method: TMethod;
+  url: TPath;
+  apiSchemaClientOperation: TPaths[TPath][TMethod];
+  parameterSchemasByType: ApiSchemaParametersByType<
+    ApiSchemaClientParametersType<TPaths[TPath][TMethod]>,
+    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
+    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
+    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
+    ApiSchemaParameters<TApiSchema, TPath, TMethod>
+  >;
+  parameterSchemasClientByType: TPaths[TPath][TMethod]['parameters'];
+  request: (
+    ...init: MyInitParam<TInit>
+  ) => Promise<
+    FetchResponse<
+      TPaths[TPath][TMethod] & Record<string, any>,
+      TInit,
+      TMediaType
+    >
+  >;
+}
+
+export type ApiSchemaParameter<
+  TApiSchema,
+  TPath extends keyof TApiSchema['paths'],
+  TMethod extends keyof TApiSchema['paths'][TPath]
+> = TApiSchema extends {
+  paths: Record<TPath, Record<TMethod, { parameters: infer TParameters }>>;
+}
+  ? GetElementTypeFromArray<TParameters>
+  : never;
 
 export type GetElementTypeFromArray<T extends any[]> = T extends (infer U)[]
   ? U
   : never;
-
-export type NonNeverKeys<T> = {
-  [K in keyof T]: T[K] extends never ? never : K;
-}[keyof T];
 
 export type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
