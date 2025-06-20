@@ -1,17 +1,13 @@
 import { HttpMethod, PathsWithMethod } from 'openapi-typescript-helpers';
-import { Client, FetchOptions, MaybeOptionalInit } from 'openapi-fetch';
+import { Client } from 'openapi-fetch';
 import {
-  ApiSchemaClientParametersType,
-  ApiSchemaParameter,
   ApiService,
   ApiSchemaParametersByType,
+  ApiSchemaParameter,
+  ApiSchemaClientParametersByType,
+  PossibleApiSchemaClientPaths,
+  PossibleApiSchema,
 } from '../../types';
-import { paths as GalleryApiClientPaths } from '../../gallery_api_schema_client';
-import { GalleryApiSchema } from '../../gallery_api_schema';
-import { Config } from '../../types';
-
-type PossibleApiSchemaClientPaths = GalleryApiClientPaths;
-type PossibleApiSchema = GalleryApiSchema;
 
 export function createApiServiceFactory<
   TApiSchemaClientPaths extends PossibleApiSchemaClientPaths,
@@ -28,58 +24,52 @@ export function createApiServiceFactory<
     method: TMethod,
     url: TPath
   ): ApiService<TApiSchemaClientPaths, TApiSchema, TMethod, TPath> {
-    type ServiceApiSchemaClientOperation =
-      TApiSchemaClientPaths[TPath][TMethod];
     const operation = (api_schema.paths as any)[url][method];
 
-    type ServiceApiSchemaParameter = ApiSchemaParameter<
-      TApiSchema,
-      TPath,
-      TMethod
-    >;
-
-    // Check if 'parameters' exists on the operation type
-
-    type ServiceApiSchemaClientParameterType = ApiSchemaClientParametersType<
-      TApiSchemaClientPaths[TPath][TMethod]
-    >;
-
-    type ServiceParameterSchemasByType = ApiSchemaParametersByType<
-      ServiceApiSchemaClientParameterType,
-      ServiceApiSchemaParameter,
-      ServiceApiSchemaParameter,
-      ServiceApiSchemaParameter,
-      ServiceApiSchemaParameter
-    >;
-
-    let parameterSchemasByType = {};
+    let apiSchemaParameterSchemasByType = {};
 
     if (!!operation) {
       if (!!operation.parameters) {
         operation.parameters.forEach(
           (param: {
             name: string;
-            in: keyof ServiceParameterSchemasByType;
+            in: keyof ApiSchemaParametersByType<any, any>;
           }) => {
-            if (!(param.in in parameterSchemasByType)) {
-              (parameterSchemasByType as any)[param.in] = {};
+            if (!(param.in in apiSchemaParameterSchemasByType)) {
+              (apiSchemaParameterSchemasByType as any)[param.in] = {};
             }
-            (parameterSchemasByType as any)[param.in][param.name] = param;
+            (apiSchemaParameterSchemasByType as any)[param.in][param.name] =
+              param;
           }
         );
       }
     }
 
+    type ServiceApiSchemaClientOperation =
+      TApiSchemaClientPaths[TPath][TMethod];
+    type ServiceApiSchemaParameter = ApiSchemaParameter<
+      TApiSchema,
+      TPath,
+      TMethod
+    >;
+    type ServiceApiSchemaClientParametersByType =
+      ApiSchemaClientParametersByType<ServiceApiSchemaClientOperation>;
+
     return {
-      method,
       url,
+      method,
       apiSchemaClientOperation: {} as ServiceApiSchemaClientOperation,
+      apiSchemaParameter: {} as ServiceApiSchemaParameter,
+      apiSchemaParameterSchemasByType:
+        apiSchemaParameterSchemasByType as ApiSchemaParametersByType<
+          ApiSchemaClientParametersByType<ServiceApiSchemaClientOperation>,
+          ServiceApiSchemaParameter
+        >,
+      apiSchemaClientParametersByType:
+        {} as ServiceApiSchemaClientParametersByType,
       request: async (...init) => {
         return client.request(method, url, { ...init });
       },
-      parameterSchemasByType:
-        parameterSchemasByType as ServiceParameterSchemasByType,
-      parameterSchemasClientByType: {} as ServiceApiSchemaClientParameterType,
     };
   };
 }

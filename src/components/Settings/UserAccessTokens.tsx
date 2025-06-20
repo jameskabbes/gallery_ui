@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { AuthContextType, ToastContextType } from '../../types';
+import {
+  ApiSchemaParameter,
+  AuthContextType,
+  ToastContextType,
+} from '../../types';
 import { updateAuthFromFetchResponse, useApiCall } from '../../utils/api';
 import { paths, operations, components } from '../../gallery_api_schema_client';
 import {
@@ -15,6 +19,8 @@ import { Loader1 } from '../Utils/Loader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Pagination } from '../Utils/Pagination';
 import { getQueryParamKeys } from '../../utils/queryParams';
+import { galleryClient } from '../../utils/apiClient';
+import { GalleryApiSchema } from '../../gallery_api_schema';
 
 type TUserAccessToken = components['schemas']['UserAccessToken'];
 type TUserAccessTokens = Record<TUserAccessToken['id'], TUserAccessToken>;
@@ -24,15 +30,19 @@ type QueryParams = NonNullable<
 >;
 type QueryParamKeys = keyof QueryParams;
 
-// const queryParamKeys = getQueryParamKeys(
-//   getUserAccessTokensSettingsPage.parametersSchemaByType['query'] as Record<
-//     QueryParamKeys,
-//     any
-//   >
-// );
+type a =
+  (typeof getUserAccessTokensSettingsPage.parameterSchemasByType)['query']['limit'];
 
-type a = typeof getUserAccessTokensSettingsPage.parameterSchemasByType;
+type c = ApiSchemaParameter<
+  GalleryApiSchema,
+  '/pages/settings/user-access-tokens/',
+  'get'
+>;
+
 type b = typeof getUserAccessTokensSettingsPage.parameterSchemasClientByType;
+
+const b =
+  getUserAccessTokensSettingsPage.parameterSchemasByType.query.limit['default'];
 
 // const queryParamSchemas: QueryParamSchemas = (() => {})();
 

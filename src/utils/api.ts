@@ -40,9 +40,11 @@ export function updateAuthFromFetchResponse<
 
 export function useApiCall<
   TPaths extends {},
-  TApiSchema,
-  TMethod extends HttpMethod & keyof TPaths[TPath],
-  TPath extends PathsWithMethod<TPaths, TMethod>,
+  TApiSchema extends { paths: any },
+  TMethod extends HttpMethod &
+    keyof TPaths[TPath] &
+    keyof TApiSchema['paths'][TPath],
+  TPath extends PathsWithMethod<TPaths, TMethod> & keyof TApiSchema['paths'],
   TMedia extends MediaType = `${string}/${string}`
 >(
   apiService: ApiService<TPaths, TApiSchema, TMethod, TPath, TMedia>,

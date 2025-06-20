@@ -1,5 +1,9 @@
 import React from 'react';
-import { paths, operations, components } from './gallery_api_schema_client';
+import {
+  paths as GalleryApiClientPaths,
+  operations,
+  components,
+} from './gallery_api_schema_client';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { E164Number } from 'libphonenumber-js';
 import { GalleryApiSchema } from './gallery_api_schema';
@@ -16,6 +20,9 @@ import {
   MediaType,
   PathsWithMethod,
 } from 'openapi-typescript-helpers';
+
+export type PossibleApiSchemaClientPaths = GalleryApiClientPaths;
+export type PossibleApiSchema = GalleryApiSchema;
 
 export type MyInitParam<Init> = RequiredKeysOf<Init> extends never
   ? [(Init & { [key: string]: unknown })?]
@@ -41,26 +48,7 @@ type ParameterTypeHelper<TParams, TKey extends string, TValueType> = SafeKeys<
       TValueType
     >;
 
-// Simplified main type using the helper
-export type ApiSchemaParametersByType<
-  TApiSchemaClientParameters extends {
-    query?: TApiSchemaClientQuery;
-    path?: TApiSchemaClientPath;
-    cookie?: TApiSchemaClientCookie;
-    header?: TApiSchemaClientHeader;
-  },
-  TQuery,
-  TPath,
-  TCookie,
-  THeader
-> = {
-  query: ParameterTypeHelper<TApiSchemaClientParameters, 'query', TQuery>;
-  path: ParameterTypeHelper<TApiSchemaClientParameters, 'path', TPath>;
-  cookie: ParameterTypeHelper<TApiSchemaClientParameters, 'cookie', TCookie>;
-  header: ParameterTypeHelper<TApiSchemaClientParameters, 'header', THeader>;
-};
-
-export type ApiSchemaClientParametersType<TApiSchemaClientOperation> =
+export type ApiSchemaClientParametersByType<TApiSchemaClientOperation> =
   // Check if 'parameters' exists as a key
   'parameters' extends keyof TApiSchemaClientOperation
     ? // Then check if the parameters object has the expected structure
@@ -74,48 +62,83 @@ export type ApiSchemaClientParametersType<TApiSchemaClientOperation> =
       : never
     : never;
 
-export interface ApiService<
-  TPaths,
-  TApiSchema,
-  TMethod extends HttpMethod,
-  TPath extends PathsWithMethod<TPaths, TMethod>,
-  TMediaType extends MediaType = `${string}/${string}`,
-  TInit extends MaybeOptionalInit<TPaths[TPath], TMethod> = MaybeOptionalInit<
-    TPaths[TPath],
-    TMethod
-  >
-> {
-  method: TMethod;
-  url: TPath;
-  apiSchemaClientOperation: TPaths[TPath][TMethod];
-  parameterSchemasByType: ApiSchemaParametersByType<
-    ApiSchemaClientParametersType<TPaths[TPath][TMethod]>,
-    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
-    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
-    ApiSchemaParameters<TApiSchema, TPath, TMethod>,
-    ApiSchemaParameters<TApiSchema, TPath, TMethod>
+export type ApiSchemaParametersByType<
+  TApiSchemaClientParametersByType extends {
+    query?: TApiSchemaClientQuery;
+    path?: TApiSchemaClientPath;
+    cookie?: TApiSchemaClientCookie;
+    header?: TApiSchemaClientHeader;
+  },
+  TApiSchemaParameter
+> = {
+  query: ParameterTypeHelper<
+    TApiSchemaClientParametersByType,
+    'query',
+    TApiSchemaParameter
   >;
-  parameterSchemasClientByType: TPaths[TPath][TMethod]['parameters'];
+  path: ParameterTypeHelper<
+    TApiSchemaClientParametersByType,
+    'path',
+    TApiSchemaParameter
+  >;
+  cookie: ParameterTypeHelper<
+    TApiSchemaClientParametersByType,
+    'cookie',
+    TApiSchemaParameter
+  >;
+  header: ParameterTypeHelper<
+    TApiSchemaClientParametersByType,
+    'header',
+    TApiSchemaParameter
+  >;
+};
+
+export type ApiSchemaParameter<TApiSchema, TPath, TMethod> =
+  TApiSchema extends {
+    paths: Record<
+      TPath,
+      Record<TMethod, { parameters: infer P extends any[] }>
+    >;
+  }
+    ? GetElementTypeFromArray<P>
+    : never;
+
+export interface ApiService<
+  TApiSchemaClientPaths,
+  TApiSchema,
+  TMethod extends HttpMethod &
+    keyof TApiSchemaClientPaths[TPath] &
+    keyof TApiSchema['paths'][TPath],
+  TPath extends PathsWithMethod<TApiSchemaClientPaths, TMethod> &
+    keyof TApiSchemaClientPaths &
+    keyof TApiSchema['paths'],
+  TMediaType extends MediaType = `${string}/${string}`,
+  TInit extends MaybeOptionalInit<
+    TApiSchemaClientPaths[TPath],
+    TMethod
+  > = MaybeOptionalInit<TApiSchemaClientPaths[TPath], TMethod>,
+  TApiSchemaClientOperation = TApiSchemaClientPaths[TPath][TMethod],
+  TApiSchemaParameter = ApiSchemaParameter<TApiSchema, TPath, TMethod>
+> {
+  url: TPath;
+  method: TMethod;
+  apiSchemaClientOperation: TApiSchemaClientOperation;
+  apiSchemaParameter: TApiSchemaParameter;
+  apiSchemaParameterSchemasByType: ApiSchemaParametersByType<
+    ApiSchemaClientParametersByType<TApiSchemaClientOperation>,
+    TApiSchemaParameter
+  >;
+  apiSchemaClientParametersByType: TApiSchemaClientOperation['parameters'];
   request: (
     ...init: MyInitParam<TInit>
   ) => Promise<
     FetchResponse<
-      TPaths[TPath][TMethod] & Record<string, any>,
+      TApiSchemaClientOperation & Record<string, any>,
       TInit,
       TMediaType
     >
   >;
 }
-
-export type ApiSchemaParameter<
-  TApiSchema,
-  TPath extends keyof TApiSchema['paths'],
-  TMethod extends keyof TApiSchema['paths'][TPath]
-> = TApiSchema extends {
-  paths: Record<TPath, Record<TMethod, { parameters: infer TParameters }>>;
-}
-  ? GetElementTypeFromArray<TParameters>
-  : never;
 
 export type GetElementTypeFromArray<T extends any[]> = T extends (infer U)[]
   ? U
