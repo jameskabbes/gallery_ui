@@ -68,7 +68,8 @@ export function createApiServiceFactory<
       apiSchemaClientParametersByType:
         {} as ServiceApiSchemaClientParametersByType,
       request: async (...init) => {
-        return client.request(method, url, { ...init });
+        const options = init[0] || {};
+        return client.request(method, url, options);
       },
     };
   };
