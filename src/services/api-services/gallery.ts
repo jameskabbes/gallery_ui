@@ -178,35 +178,3 @@ export const getGalleryPage = createGalleryService(
   'get',
   '/pages/galleries/{gallery_id}/'
 );
-
-type a1 = typeof getGalleryPage.apiSchemaParameterSchemasByType;
-type a2 = typeof getGalleryPage.apiSchemaClientParametersByType;
-
-type b1 = typeof getGalleryPage.apiSchemaParameterSchemasByType;
-type b2 = typeof getGalleryPage.apiSchemaClientParametersByType;
-
-type c1 = typeof getApiKeys.apiSchemaParameterSchemasByType;
-type c2 = typeof getApiKeys.apiSchemaClientParametersByType;
-
-type d1 = typeof getIsGalleryAvailable.apiSchemaParameterSchemasByType;
-type d2 = typeof getIsGalleryAvailable.apiSchemaClientParametersByType;
-
-type e1 = typeof getApiKey.apiSchemaParameterSchemasByType;
-type e2 = typeof getApiKey.apiSchemaClientParametersByType;
-
-type f1 = typeof getApiKeyJwt.apiSchemaParameterSchemasByType;
-type f2 = typeof getApiKeyJwt.apiSchemaClientParametersByType;
-
-type g1 = typeof getApiKeysSettingsPage.apiSchemaParameterSchemasByType;
-type g2 = typeof getApiKeysSettingsPage.apiSchemaClientParametersByType;
-
-type h1 = typeof getAuth.apiSchemaParameterSchemasByType;
-type h2 = typeof getAuth.apiSchemaClientParametersByType;
-
-type z1 = (typeof getApiKey)['method'];
-type z2 = (typeof getApiKey)['url'];
-type z3 = (typeof getApiKey)['apiSchemaClientOperation'];
-type z4 = (typeof getApiKey)['apiSchemaParameterSchemasByType'];
-type z5 = (typeof getApiKey)['apiSchemaClientParametersByType'];
-type z6 = (typeof getApiKey)['request'];
-type z7 = (typeof getApiKey)['apiSchemaParameter'];

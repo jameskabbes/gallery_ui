@@ -18,40 +18,30 @@ import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { Loader1 } from '../Utils/Loader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Pagination } from '../Utils/Pagination';
-import { getQueryParamKeys } from '../../utils/queryParams';
+import {
+  getQueryParamKeys,
+  parseBoundedNumericQueryParams,
+} from '../../utils/queryParams';
+import { boundNumber } from '../../utils/boundNumber';
 import { galleryClient } from '../../utils/apiClient';
-import { GalleryApiSchema } from '../../gallery_api_schema';
 
 type TUserAccessToken = components['schemas']['UserAccessToken'];
 type TUserAccessTokens = Record<TUserAccessToken['id'], TUserAccessToken>;
-
-type QueryParams = NonNullable<
-  (typeof getUserAccessTokensSettingsPage.parameterSchemasClientByType)['query']
->;
-type QueryParamKeys = keyof QueryParams;
-
-type a =
-  (typeof getUserAccessTokensSettingsPage.parameterSchemasByType)['query']['limit'];
-
-type c = ApiSchemaParameter<
-  GalleryApiSchema,
-  '/pages/settings/user-access-tokens/',
-  'get'
->;
-
-type b = typeof getUserAccessTokensSettingsPage.parameterSchemasClientByType;
-
-const b =
-  getUserAccessTokensSettingsPage.parameterSchemasByType.query.limit['default'];
-
-// const queryParamSchemas: QueryParamSchemas = (() => {})();
-
-// getUserAccessTokensSettingsPage.parametersSchemaByType['query']
 
 interface Props {
   authContext: AuthContextType;
   toastContext: ToastContextType;
 }
+
+type RequiredQueryParams = Required<
+  NonNullable<
+    (typeof getUserAccessTokensSettingsPage)['apiSchemaClientParametersByType']['query']
+  >
+>;
+
+const queryParamSchemas =
+  getUserAccessTokensSettingsPage.apiSchemaParameterSchemasByType.query;
+const queryParamKeys = getQueryParamKeys(queryParamSchemas);
 
 export function UserAccessTokens({ authContext, toastContext }: Props) {
   const { activateButtonConfirmation } = useConfirmationModal();
@@ -59,63 +49,47 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
 
-  const [queryParams, setQueryParams] = useState<QueryParams>(
-    () =>
-      Object.fromEntries(
-        queryKeys.map((key) => [key, queryParamSchemas[key].default])
-      ) as QueryParams
-  );
+  function getQueryParamsFromQuery(
+    query: URLSearchParams
+  ): RequiredQueryParams {
+    const limit = query.get('limit');
+    const offset = query.get('offset');
 
-  function getLimitFromQuery(limit: string | null): QueryParams['limit'] {
-    if (limit === null) {
-      return queryParamSchemas['limit'].default;
-    } else {
-      const limitInt = parseInt(limit, 10);
-      if (isNaN(limitInt)) {
-        return queryParamSchemas['limit'].default;
-      } else {
-        return Math.min(
-          queryParamSchemas['limit'].maximum,
-          Math.max(queryParamSchemas['limit'].minimum, limitInt)
-        );
-      }
-    }
+    return {
+      limit: boundNumber(
+        Number(limit),
+        queryParamSchemas['limit'].schema.default,
+        queryParamSchemas['limit'].schema.minimum,
+        queryParamSchemas['limit'].schema.maximum
+      ),
+      offset: boundNumber(
+        Number(offset),
+        queryParamSchemas['offset'].schema.default,
+        queryParamSchemas['offset'].schema.minimum,
+        queryParamSchemas['offset'].schema.maximum
+      ),
+    };
   }
 
-  function getOffsetFromQuery(offset: string): Params['offset'] {
-    if (!offset) {
-      return queryParamObjects['offset'].schema.default;
-    } else {
-      const offsetInt = parseInt(offset, 10);
-      if (isNaN(offsetInt)) {
-        return queryParamObjects['offset'].schema.default;
-      } else {
-        return Math.max(queryParamObjects['offset'].schema.minimum, offsetInt);
-      }
-    }
-  }
-
-  const [limit, setLimit] = useState<Params['limit']>(
-    getLimitFromQuery(query.get('limit'))
-  );
-
-  const [offset, setOffset] = useState<Params['offset']>(
-    getOffsetFromQuery(query.get('offset'))
+  const [queryParams, setQueryParams] = useState<RequiredQueryParams>(
+    getQueryParamsFromQuery(query)
   );
 
   //   Update URL when state changes
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (limit !== queryParamObjects['limit'].schema.default)
-      params.set('limit', limit.toString());
-    if (offset !== queryParamObjects['offset'].schema.default)
-      params.set('offset', offset.toString());
+    const query = new URLSearchParams();
 
-    const newSearch = params.toString();
+    for (const key of queryParamKeys) {
+      if (queryParams[key] !== queryParamSchemas[key].schema.default) {
+        query.set(key, queryParams[key].toString());
+      }
+    }
+
+    const newSearch = query.toString();
     if (newSearch !== location.search) {
       navigate({ search: newSearch });
     }
-  }, [limit, offset]);
+  }, [queryParams]);
 
   const [userAccessTokenCount, setUserAccessTokenCount] = useState<
     number | null
@@ -129,13 +103,10 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
 
   const { data, loading, refetch } = useApiCall(
     getUserAccessTokensSettingsPage,
-    [],
+    [queryParams],
     {
       params: {
-        query: {
-          limit: limit,
-          offset: offset,
-        },
+        query: queryParams,
       },
     }
   );
@@ -149,7 +120,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
     } else {
       hasMounted.current = true;
     }
-  }, [offset, limit]);
+  }, [queryParams]);
 
   useEffect(() => {
     if (data !== undefined) {
@@ -169,6 +140,10 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
 
   async function handleDeleteUserAccessToken(index: number) {
     const sessionId = userAccessTokenIdIndex[index];
+    if (sessionId === undefined) {
+      console.error('Session ID is undefined at index:', index);
+      return;
+    }
 
     let toastId = toastContext.makePending({
       message: 'Deleting session...',
@@ -180,7 +155,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
       return newUserAccessTokenIdIndex;
     });
 
-    setUserAccessTokenCount((prev) => prev - 1);
+    setUserAccessTokenCount((prev) => (prev === null ? 0 : prev - 1));
 
     const { data } = updateAuthFromFetchResponse(
       await deleteUserAccessToken.request({
@@ -193,7 +168,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
       authContext
     );
 
-    if (status === 204) {
+    if (data !== undefined) {
       toastContext.update(toastId, {
         message: `Deleted session`,
         type: 'success',
@@ -217,7 +192,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
         return newUserAccessTokenIdIndex;
       });
 
-      setUserAccessTokenCount((prev) => prev + 1);
+      setUserAccessTokenCount((prev) => (prev === null ? 0 : prev + 1));
     }
   }
 
@@ -229,16 +204,27 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
           <div className="flex flex-row justify-end">
             <Pagination
               loading={loading}
-              offset={offset}
-              setOffset={setOffset}
-              limit={limit}
-              setLimit={setLimit}
+              offset={queryParams.offset}
+              setOffset={(offset: number) => {
+                setQueryParams((prev) => ({ ...prev, offset }));
+              }}
+              limit={queryParams.limit}
+              setLimit={(limit: number) => {
+                setQueryParams((prev) => ({ ...prev, limit }));
+              }}
               count={userAccessTokenIdIndex.length}
               total={userAccessTokenCount}
             />
           </div>
           {userAccessTokenIdIndex.map((userAccessTokenId, index) => {
             const userAccessToken = userAccessTokens[userAccessTokenId];
+            if (userAccessToken === undefined) {
+              console.error(
+                `User access token with ID ${userAccessTokenId} not found in userAccessTokens`
+              );
+              return null;
+            }
+
             return (
               <Card1
                 key={userAccessTokenId}

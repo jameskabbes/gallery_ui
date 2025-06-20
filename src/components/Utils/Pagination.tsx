@@ -6,9 +6,9 @@ import { pagination } from '../../config/constants';
 interface PaginationProps {
   loading: boolean;
   offset: number;
-  setOffset: React.Dispatch<React.SetStateAction<PaginationProps['offset']>>;
+  setOffset: (offset: number) => void;
   limit: number;
-  setLimit: React.Dispatch<React.SetStateAction<PaginationProps['limit']>>;
+  setLimit: (limit: number) => void;
   count: number;
   total: number | null;
 }
