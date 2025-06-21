@@ -56,18 +56,24 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
     const offset = query.get('offset');
 
     return {
-      limit: boundNumber(
-        Number(limit),
-        queryParamSchemas['limit'].schema.default,
-        queryParamSchemas['limit'].schema.minimum,
-        queryParamSchemas['limit'].schema.maximum
-      ),
-      offset: boundNumber(
-        Number(offset),
-        queryParamSchemas['offset'].schema.default,
-        queryParamSchemas['offset'].schema.minimum,
-        queryParamSchemas['offset'].schema.maximum
-      ),
+      limit:
+        limit === null
+          ? queryParamSchemas['limit'].schema.default
+          : boundNumber(
+              Number(limit),
+              queryParamSchemas['limit'].schema.default,
+              queryParamSchemas['limit'].schema.minimum,
+              queryParamSchemas['limit'].schema.maximum
+            ),
+      offset:
+        offset === null
+          ? queryParamSchemas['offset'].schema.default
+          : boundNumber(
+              Number(offset),
+              queryParamSchemas['offset'].schema.default,
+              queryParamSchemas['offset'].schema.minimum,
+              queryParamSchemas['offset'].schema.maximum
+            ),
     };
   }
 
