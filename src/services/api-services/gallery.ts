@@ -1,8 +1,8 @@
-import { paths } from '../../gallery_api_schema_client';
+import { paths } from '../../types/gallery/api_schema_client';
 import { config } from '../../config/config';
 import { galleryClient } from '../../utils/apiClient';
 import { createApiServiceFactory } from '.';
-import { GalleryApiSchema } from '../../gallery_api_schema';
+import { GalleryApiSchema } from '../../types/gallery/api_schema';
 // Auth
 
 const createGalleryService = createApiServiceFactory<paths, GalleryApiSchema>(

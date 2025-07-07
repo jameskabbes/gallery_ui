@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
-import { paths, components } from '../gallery_api_schema_client';
+import { paths, components } from '../types/gallery/api_schema_client';
 import { ApiService, AuthContextType } from '../types';
 import { config } from '../config/config';
 import {

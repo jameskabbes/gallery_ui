@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
 import { ToastContext } from '../../contexts/Toast';
-import { components } from '../../gallery_api_schema_client';
+import { components } from '../../types/gallery/api_schema_client';
 import {
   patchMe,
   getIsApiKeyAvailable,

@@ -4,7 +4,7 @@ import { ValidatedInputState } from '../../types';
 import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 import { config } from '../../config/config';
 import { AuthContext } from '../../contexts/Auth';
-import { components } from '../../gallery_api_schema_client';
+import { components } from '../../types/gallery/api_schema_client';
 import { ToastContext } from '../../contexts/Toast';
 import { patchMe } from '../../services/api-services/gallery';
 import { Button1 } from '../Utils/Button';

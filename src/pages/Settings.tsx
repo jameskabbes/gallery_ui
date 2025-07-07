@@ -5,13 +5,17 @@ import { ToastContext } from '../contexts/Toast';
 import { Appearance } from '../components/Settings/Appearance';
 import { UserAccessTokens } from '../components/Settings/UserAccessTokens';
 import { Profile } from '../components/Settings/Profile';
-import { paths, operations, components } from '../gallery_api_schema_client';
+import {
+  paths,
+  operations,
+  components,
+} from '../types/gallery/api_schema_client';
 
 import { IoBrush } from 'react-icons/io5';
 import { IoRadioOutline } from 'react-icons/io5';
 import { IoPersonOutline } from 'react-icons/io5';
 import { IoKeyOutline } from 'react-icons/io5';
-import { ApiKeys } from '../components/Settings/ApiKeys';
+import { ApiKeys } from '../components/Settings/api-keys/ApiKeys';
 import { useApiCall } from '../utils/api';
 import { Surface } from '../components/Utils/Surface';
 import { Button2 } from '../components/Utils/Button';

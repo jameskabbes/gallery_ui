@@ -1,6 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ModalsContextType, ValidatedInputState } from '../../types';
-import { paths, operations, components } from '../../gallery_api_schema_client';
+import {
+  paths,
+  operations,
+  components,
+} from '../../types/gallery/api_schema_client';
 import {
   postGallery,
   getIsGalleryAvailable,

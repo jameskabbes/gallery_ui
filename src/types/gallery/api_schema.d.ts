@@ -93,7 +93,7 @@ interface Loc {
   title: string;
 }
 interface Items2 {
-  anyOf: Items[];
+  anyOf: AnyOf2[];
 }
 interface UserUpdate {
   properties: Properties36;
@@ -141,10 +141,10 @@ interface Properties33 {
   user_role_id: Clientid;
 }
 interface Email2 {
-  anyOf: AnyOf7[];
+  anyOf: AnyOf8[];
   title: string;
 }
-interface AnyOf7 {
+interface AnyOf8 {
   type: string;
   maxLength?: number;
   minLength?: number;
@@ -334,18 +334,18 @@ interface Properties16 {
   access_token: User;
 }
 interface Scopeids {
-  anyOf: AnyOf6[];
+  anyOf: AnyOf7[];
   title: string;
 }
-interface AnyOf6 {
-  items?: Items;
+interface AnyOf7 {
+  items?: AnyOf2;
   type: string;
   uniqueItems?: boolean;
 }
 interface User {
-  anyOf: AnyOf5[];
+  anyOf: AnyOf6[];
 }
-interface AnyOf5 {
+interface AnyOf6 {
   '$ref'?: string;
   type?: string;
 }
@@ -426,10 +426,10 @@ interface Properties10 {
   date: Expiry2;
 }
 interface Name2 {
-  anyOf: AnyOf4[];
+  anyOf: AnyOf5[];
   title: string;
 }
-interface AnyOf4 {
+interface AnyOf5 {
   type: string;
   maxLength?: number;
   minLength?: number;
@@ -483,7 +483,7 @@ interface Properties6 {
   client_secret: Clientid;
 }
 interface Clientid {
-  anyOf: Items[];
+  anyOf: AnyOf2[];
   title: string;
 }
 interface Scope {
@@ -492,10 +492,10 @@ interface Scope {
   default: string;
 }
 interface Granttype {
-  anyOf: AnyOf3[];
+  anyOf: AnyOf4[];
   title: string;
 }
-interface AnyOf3 {
+interface AnyOf4 {
   type: string;
   pattern?: string;
 }
@@ -550,10 +550,10 @@ interface Expiry2 {
   title: string;
 }
 interface Name {
-  anyOf: AnyOf2[];
+  anyOf: AnyOf3[];
   title: string;
 }
-interface AnyOf2 {
+interface AnyOf3 {
   type: string;
   maxLength?: number;
   minLength?: number;
@@ -726,10 +726,13 @@ interface Parameter7 {
   schema: Schema10;
 }
 interface Schema10 {
-  anyOf?: Items[];
+  anyOf?: AnyOf2[];
   title: string;
   type?: string;
   default?: boolean;
+}
+interface AnyOf2 {
+  type: string;
 }
 interface Pagessettingsuseraccesstokens {
   get: Get10;
@@ -817,6 +820,7 @@ interface Schema8 {
   items?: Items;
 }
 interface Items {
+  enum: string[];
   type: string;
 }
 interface Useraccesstokensdetailscount {

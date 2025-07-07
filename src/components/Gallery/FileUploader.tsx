@@ -8,7 +8,11 @@ import {
 } from '../../types';
 import { defaultValidatedInputState } from '../../utils/useValidatedInput';
 
-import { paths, operations, components } from '../../gallery_api_schema_client';
+import {
+  paths,
+  operations,
+  components,
+} from '../../types/gallery/api_schema_client';
 import { Button2, ButtonSubmit } from '../Utils/Button';
 import { Surface } from '../Utils/Surface';
 import { CheckOrX } from '../Form/CheckOrX';

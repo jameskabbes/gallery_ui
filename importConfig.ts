@@ -1,5 +1,5 @@
 import { Config, SharedConfig, FrontendConfig } from './src/types';
-import { GalleryApiSchema } from './src/gallery_api_schema';
+import { GalleryApiSchema } from './src/types/gallery/api_schema';
 
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -7,7 +7,6 @@ import path from 'path';
 import yaml from 'js-yaml';
 import os from 'os';
 import { warn } from 'console';
-import { config } from 'process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

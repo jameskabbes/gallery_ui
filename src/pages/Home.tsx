@@ -1,6 +1,10 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { DeviceContext } from '../contexts/Device';
-import { paths, operations, components } from '../gallery_api_schema_client';
+import {
+  paths,
+  operations,
+  components,
+} from '../types/gallery/api_schema_client';
 import { ValidatedInputState } from '../types';
 import { defaultValidatedInputState } from '../utils/useValidatedInput';
 import { useApiCall } from '../utils/api';

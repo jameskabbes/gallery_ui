@@ -3,10 +3,10 @@ import {
   paths as GalleryApiClientPaths,
   operations,
   components,
-} from './gallery_api_schema_client';
+} from './types/gallery/api_schema_client';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { E164Number } from 'libphonenumber-js';
-import { GalleryApiSchema } from './gallery_api_schema';
+import { GalleryApiSchema } from './types/gallery/api_schema';
 
 import {
   ClientRequestMethod,
@@ -354,17 +354,26 @@ interface HeaderKeys {
   auth_logout: string;
 }
 
+export type ScopeName = string;
+export type ScopeId = number;
+export type VisibilityLevelName = string;
+export type VisibilityLevelId = number;
+export type PermissionLevelName = string;
+export type PermissionLevelId = number;
+export type UserRoleName = string;
+export type UserRoleId = number;
+
 export interface SharedConfig {
   BACKEND_URL: string;
   FRONTEND_URL: string;
   AUTH_KEY: string;
   HEADER_KEYS: HeaderKeys;
   FRONTEND_ROUTES: Record<string, string>;
-  SCOPE_NAME_MAPPING: Record<string, number>;
-  VISIBILITY_LEVEL_NAME_MAPPING: Record<string, number>;
-  PERMISSION_LEVEL_NAME_MAPPING: Record<string, number>;
-  USER_ROLE_NAME_MAPPING: Record<string, number>;
-  USER_ROLE_SCOPES: Record<string, string[]>;
+  SCOPE_NAME_MAPPING: Record<ScopeName, ScopeId>;
+  VISIBILITY_LEVEL_NAME_MAPPING: Record<VisibilityLevelName, VisibilityLevelId>;
+  PERMISSION_LEVEL_NAME_MAPPING: Record<PermissionLevelName, PermissionLevelId>;
+  USER_ROLE_NAME_MAPPING: Record<UserRoleName, UserRoleId>;
+  USER_ROLE_SCOPES: Record<UserRoleName, ScopeName[]>;
   OTP_LENGTH: number;
   GOOGLE_CLIENT_ID: string;
 }
@@ -396,15 +405,15 @@ export interface Config {
   authKey: string;
   headerKeys: HeaderKeys;
   frontendRoutes: Record<string, string>;
-  scopeNameMapping: Record<string, number>;
-  scopeIdMapping: Record<number, string>;
-  visibilityLevelNameMapping: Record<string, number>;
-  visibilityLevelIdMapping: Record<number, string>;
-  permissionLevelNameMapping: Record<string, number>;
-  permissionLevelIdMapping: Record<number, string>;
-  userRoleNameMapping: Record<string, number>;
-  userRoleIdMapping: Record<number, string>;
-  userRoleScopes: Record<string, string[]>;
+  scopeNameMapping: Record<ScopeName, ScopeId>;
+  scopeIdMapping: Record<ScopeId, ScopeName>;
+  visibilityLevelNameMapping: Record<VisibilityLevelName, VisibilityLevelId>;
+  visibilityLevelIdMapping: Record<VisibilityLevelId, VisibilityLevelName>;
+  permissionLevelNameMapping: Record<PermissionLevelName, PermissionLevelId>;
+  permissionLevelIdMapping: Record<PermissionLevelId, PermissionLevelName>;
+  userRoleNameMapping: Record<UserRoleName, UserRoleId>;
+  userRoleIdMapping: Record<UserRoleId, UserRoleName>;
+  userRoleScopes: Record<UserRoleName, ScopeName[]>;
   otpLength: number;
   googleClientId: string;
 }

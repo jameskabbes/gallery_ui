@@ -1,5 +1,9 @@
 import React, { useContext } from 'react';
-import { paths, operations, components } from '../../gallery_api_schema_client';
+import {
+  paths,
+  operations,
+  components,
+} from '../../types/gallery/api_schema_client';
 import { AuthContextType, ToastContextType } from '../../types';
 
 import { UpdateUsername } from '../User/UpdateUsername';
