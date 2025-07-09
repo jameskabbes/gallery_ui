@@ -22,10 +22,7 @@ import { useConfirmationModal } from '../../utils/useConfirmationModal';
 import { Loader1 } from '../Utils/Loader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Pagination } from '../Utils/Pagination';
-import {
-  getQueryParamKeys,
-  parseBoundedNumericQueryParams,
-} from '../../utils/queryParams';
+import { getQueryParamKeys } from '../../utils/queryParams';
 import { boundNumber } from '../../utils/boundNumber';
 import { galleryClient } from '../../utils/apiClient';
 

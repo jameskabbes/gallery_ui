@@ -77,12 +77,12 @@ interface Schemas {
   ValidationError: ValidationError;
 }
 interface ValidationError {
-  properties: Properties37;
+  properties: Properties36;
   type: string;
   required: string[];
   title: string;
 }
-interface Properties37 {
+interface Properties36 {
   loc: Loc;
   msg: Schema5;
   type: Schema5;
@@ -96,27 +96,17 @@ interface Items2 {
   anyOf: AnyOf2[];
 }
 interface UserUpdate {
-  properties: Properties36;
-  type: string;
-  title: string;
-}
-interface Properties36 {
-  phone_number: Clientid;
-  username: Name2;
-  password: Name;
-  email: Email2;
-}
-interface UserPublic {
   properties: Properties35;
   type: string;
-  required: string[];
   title: string;
 }
 interface Properties35 {
-  id: Schema5;
-  username: Name2;
+  phone_number: Clientid;
+  username: Name;
+  password: Description;
+  email: Email2;
 }
-interface UserPrivate {
+interface UserPublic {
   properties: Properties34;
   type: string;
   required: string[];
@@ -124,19 +114,29 @@ interface UserPrivate {
 }
 interface Properties34 {
   id: Schema5;
-  username: Name2;
+  username: Name;
+}
+interface UserPrivate {
+  properties: Properties33;
+  type: string;
+  required: string[];
+  title: string;
+}
+interface Properties33 {
+  id: Schema5;
+  username: Name;
   email: Email;
   user_role_id: Schema5;
 }
 interface UserAdminUpdate {
-  properties: Properties33;
+  properties: Properties32;
   type: string;
   title: string;
 }
-interface Properties33 {
+interface Properties32 {
   phone_number: Clientid;
-  username: Name2;
-  password: Name;
+  username: Name;
+  password: Description;
   email: Email2;
   user_role_id: Clientid;
 }
@@ -151,15 +151,15 @@ interface AnyOf8 {
   format?: string;
 }
 interface UserAdminCreate {
-  properties: Properties32;
+  properties: Properties31;
   type: string;
   required: string[];
   title: string;
 }
-interface Properties32 {
+interface Properties31 {
   phone_number: Clientid;
-  username: Name2;
-  password: Name;
+  username: Name;
+  password: Description;
   email: Email;
   user_role_id: Userroleid;
 }
@@ -169,59 +169,48 @@ interface Userroleid {
   default: number;
 }
 interface UserAccessTokenPublic {
-  properties: Properties31;
-  type: string;
-  required: string[];
-  title: string;
-}
-interface Properties31 {
-  id: Schema5;
-  expiry: Expiry;
-}
-interface UserAccessTokenAdminCreate {
   properties: Properties30;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties30 {
+  id: Schema5;
   expiry: Expiry;
-  user_id: Schema5;
 }
-interface UserAccessToken {
+interface UserAccessTokenAdminCreate {
   properties: Properties29;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties29 {
-  issued: Expiry;
   expiry: Expiry;
   user_id: Schema5;
-  id: Schema5;
 }
-interface TokenResponse {
+interface UserAccessToken {
   properties: Properties28;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties28 {
-  access_token: Schema5;
-  token_type: Schema5;
+  issued: Expiry;
+  expiry: Expiry;
+  user_id: Schema5;
+  id: Schema5;
 }
-interface SettingsUserAccessTokensPageResponse {
+interface TokenResponse {
   properties: Properties27;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties27 {
-  auth: Schema;
-  user_access_token_count: Schema5;
-  user_access_tokens: Schema4;
+  access_token: Schema5;
+  token_type: Schema5;
 }
-interface SettingsApiKeysPageResponse {
+interface SettingsUserAccessTokensPageResponse {
   properties: Properties26;
   type: string;
   required: string[];
@@ -229,54 +218,65 @@ interface SettingsApiKeysPageResponse {
 }
 interface Properties26 {
   auth: Schema;
-  api_key_count: Schema5;
-  api_keys: Schema4;
+  user_access_token_count: Schema5;
+  user_access_tokens: Schema4;
 }
-interface RequestMagicLinkSMSRequest {
+interface SettingsApiKeysPageResponse {
   properties: Properties25;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties25 {
-  phone_number: Schema5;
+  auth: Schema;
+  api_key_count: Schema5;
+  api_keys: Schema4;
 }
-interface RequestMagicLinkEmailRequest {
+interface RequestMagicLinkSMSRequest {
   properties: Properties24;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties24 {
-  email: Email;
+  phone_number: Schema5;
 }
-interface ProfilePageResponse {
+interface RequestMagicLinkEmailRequest {
   properties: Properties23;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties23 {
-  auth: Schema;
-  user: User;
+  email: Email;
 }
-interface LoginWithOTPPhoneNumberRequest {
+interface ProfilePageResponse {
   properties: Properties22;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties22 {
-  code: Schema6;
-  phone_number: Schema5;
+  auth: Schema;
+  user: User;
 }
-interface LoginWithOTPEmailRequest {
+interface LoginWithOTPPhoneNumberRequest {
   properties: Properties21;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties21 {
+  code: Schema6;
+  phone_number: Schema5;
+}
+interface LoginWithOTPEmailRequest {
+  properties: Properties20;
+  type: string;
+  required: string[];
+  title: string;
+}
+interface Properties20 {
   code: Schema6;
   email: Email;
 }
@@ -288,47 +288,47 @@ interface Email {
   title: string;
 }
 interface LoginWithMagicLinkRequest {
-  properties: Properties20;
-  type: string;
-  required: string[];
-  title: string;
-}
-interface Properties20 {
-  token: Schema5;
-}
-interface LoginWithGoogleRequest {
   properties: Properties19;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties19 {
-  id_token: Schema5;
+  token: Schema5;
 }
-interface IsAvailableResponse {
+interface LoginWithGoogleRequest {
   properties: Properties18;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties18 {
-  available: Schema5;
+  id_token: Schema5;
 }
-interface HTTPValidationError {
+interface IsAvailableResponse {
   properties: Properties17;
-  type: string;
-  title: string;
-}
-interface Properties17 {
-  detail: Schema4;
-}
-interface GetUserSessionInfoReturn {
-  properties: Properties16;
   type: string;
   required: string[];
   title: string;
 }
+interface Properties17 {
+  available: Schema5;
+}
+interface HTTPValidationError {
+  properties: Properties16;
+  type: string;
+  title: string;
+}
 interface Properties16 {
+  detail: Schema4;
+}
+interface GetUserSessionInfoReturn {
+  properties: Properties15;
+  type: string;
+  required: string[];
+  title: string;
+}
+interface Properties15 {
   user: User;
   scope_ids: Scopeids;
   access_token: User;
@@ -346,33 +346,19 @@ interface User {
   anyOf: AnyOf6[];
 }
 interface AnyOf6 {
-  '$ref'?: string;
+  $ref?: string;
   type?: string;
 }
 interface GetUserSessionInfoNestedReturn {
-  properties: Properties15;
-  type: string;
-  required: string[];
-  title: string;
-}
-interface Properties15 {
-  auth: Schema;
-}
-interface GalleryPublic {
   properties: Properties14;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties14 {
-  id: Schema5;
-  user_id: Schema5;
-  name: Schema6;
-  parent_id: Clientid;
-  description: Name;
-  date: Expiry2;
+  auth: Schema;
 }
-interface GalleryPrivate {
+interface GalleryPublic {
   properties: Properties13;
   type: string;
   required: string[];
@@ -383,49 +369,63 @@ interface Properties13 {
   user_id: Schema5;
   name: Schema6;
   parent_id: Clientid;
-  description: Name;
-  date: Expiry2;
-  visibility_level: Schema5;
+  description: Description;
+  date: Date;
 }
-interface GalleryPageResponse {
+interface GalleryPrivate {
   properties: Properties12;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties12 {
-  auth: Schema;
-  gallery: Schema;
-  parents: Schema4;
-  children: Schema4;
+  id: Schema5;
+  user_id: Schema5;
+  name: Schema6;
+  parent_id: Clientid;
+  description: Description;
+  date: Date;
+  visibility_level: Schema5;
 }
-interface GalleryCreate {
+interface GalleryPageResponse {
   properties: Properties11;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties11 {
-  name: Schema6;
-  visibility_level: Schema5;
-  description: Name;
-  date: Expiry2;
-  parent_id: Schema5;
+  auth: Schema;
+  gallery: Schema;
+  parents: Schema4;
+  children: Schema4;
 }
-interface GalleryAdminUpdate {
+interface GalleryCreate {
   properties: Properties10;
   type: string;
+  required: string[];
   title: string;
 }
 interface Properties10 {
-  name: Name2;
+  name: Schema6;
+  visibility_level: Schema5;
+  description: Description;
+  date: Date;
+  parent_id: Schema5;
+}
+interface GalleryAdminUpdate {
+  properties: Properties9;
+  type: string;
+  title: string;
+}
+interface Properties9 {
+  name: Name;
   user_id: Clientid;
   visibility_level: Clientid;
   parent_id: Clientid;
-  description: Name;
-  date: Expiry2;
+  description: Description;
+  date: Date;
 }
-interface Name2 {
+interface Name {
   anyOf: AnyOf5[];
   title: string;
 }
@@ -436,44 +436,57 @@ interface AnyOf5 {
   pattern?: string;
 }
 interface GalleryAdminCreate {
-  properties: Properties9;
-  type: string;
-  required: string[];
-  title: string;
-}
-interface Properties9 {
-  name: Schema6;
-  visibility_level: Schema5;
-  description: Name;
-  date: Expiry2;
-  user_id: Schema5;
-  parent_id: Clientid;
-}
-interface DetailOnlyResponse {
   properties: Properties8;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties8 {
-  detail: Schema5;
+  name: Schema6;
+  visibility_level: Schema5;
+  description: Description;
+  date: Date;
+  user_id: Schema5;
+  parent_id: Clientid;
 }
-interface Bodyuploadfilegalleriesgalleryiduploadpost {
+interface Date {
+  anyOf: AnyOf[];
+  title: string;
+}
+interface Description {
+  anyOf: AnyOf4[];
+  title: string;
+}
+interface AnyOf4 {
+  type: string;
+  maxLength?: number;
+  minLength?: number;
+}
+interface DetailOnlyResponse {
   properties: Properties7;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties7 {
-  file: Expiry;
+  detail: Schema5;
 }
-interface Bodyloginpasswordauthloginpasswordpost {
+interface Bodyuploadfilegalleriesgalleryiduploadpost {
   properties: Properties6;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties6 {
+  file: Expiry;
+}
+interface Bodyloginpasswordauthloginpasswordpost {
+  properties: Properties5;
+  type: string;
+  required: string[];
+  title: string;
+}
+interface Properties5 {
   stay_signed_in: Staysignedin;
   grant_type: Granttype;
   username: Schema5;
@@ -492,10 +505,10 @@ interface Scope {
   default: string;
 }
 interface Granttype {
-  anyOf: AnyOf4[];
+  anyOf: AnyOf3[];
   title: string;
 }
-interface AnyOf4 {
+interface AnyOf3 {
   type: string;
   pattern?: string;
 }
@@ -505,12 +518,12 @@ interface Staysignedin {
   title: string;
 }
 interface ApiKeyPrivate {
-  properties: Properties5;
+  properties: Properties4;
   type: string;
   required: string[];
   title: string;
 }
-interface Properties5 {
+interface Properties4 {
   id: Schema5;
   user_id: Schema5;
   name: Schema9;
@@ -518,23 +531,19 @@ interface Properties5 {
   expiry: Expiry;
 }
 interface ApiKeyJWTResponse {
-  properties: Properties4;
-  type: string;
-  required: string[];
-  title: string;
-}
-interface Properties4 {
-  jwt: Schema5;
-}
-interface ApiKeyCreate {
   properties: Properties3;
   type: string;
   required: string[];
   title: string;
 }
 interface Properties3 {
-  name: Schema9;
-  expiry: Expiry;
+  jwt: Schema5;
+}
+interface ApiKeyCreate {
+  properties: Properties2;
+  type: string;
+  required: string[];
+  title: string;
 }
 interface ApiKeyAdminUpdate {
   properties: Properties2;
@@ -542,21 +551,8 @@ interface ApiKeyAdminUpdate {
   title: string;
 }
 interface Properties2 {
-  name: Name;
-  expiry: Expiry2;
-}
-interface Expiry2 {
-  anyOf: AnyOf[];
-  title: string;
-}
-interface Name {
-  anyOf: AnyOf3[];
-  title: string;
-}
-interface AnyOf3 {
-  type: string;
-  maxLength?: number;
-  minLength?: number;
+  name: Schema9;
+  expiry: Expiry;
 }
 interface ApiKeyAdminCreate {
   properties: Properties;
@@ -1077,8 +1073,7 @@ interface Content3 {
 interface Applicationjson2 {
   schema: Schema2;
 }
-interface Schema2 {
-}
+interface Schema2 {}
 interface Authlogingoogle {
   post: Post5;
 }
@@ -1181,7 +1176,7 @@ interface Applicationjson {
   schema: Schema;
 }
 interface Schema {
-  '$ref': string;
+  $ref: string;
 }
 interface Info {
   title: string;

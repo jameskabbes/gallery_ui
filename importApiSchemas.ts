@@ -14,7 +14,7 @@ for (const key in importedConfig.apiSchemaPaths) {
 
   const cliSchemaPath = relativeSchemaPath.split(path.sep).join('/');
 
-  const outputPath = `./src/${key}/api_schema_client.d.ts`;
+  const outputPath = `./src/types/${key}/api_schema_client.d.ts`;
   const command = 'npx';
   const args = ['openapi-typescript', cliSchemaPath, '-o', outputPath];
 
@@ -42,6 +42,6 @@ for (const key in importedConfig.apiSchemaPaths) {
   });
 
   lines[0] = 'export ' + lines[0]; // Ensure the first line is exported
-  const typesOutputPath = `./src/${key}/api_schema.d.ts`;
+  const typesOutputPath = `./src/types/${key}/api_schema.d.ts`;
   writeFileSync(typesOutputPath, lines.join('\n'), 'utf8');
 }

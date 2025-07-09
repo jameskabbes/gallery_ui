@@ -1,21 +1,29 @@
+import { useState, useEffect } from 'react';
+import { AuthContextType, ValidatedInputState } from '../../../../types';
+import { ApiKey, UpdateApiKeyFunc } from '../../../../types/gallery/types';
+import { defaultValidatedInputState } from '../../../../utils/useValidatedInput';
+import { ValidatedInputString } from '../../../Form/ValidatedInputString';
+import { config } from '../../../../config/config';
+import { ValidatedInputDatetimeLocal } from '../../../Form/ValidatedInputDatetimeLocal';
+import { Loader1 } from '../../../Utils/Loader';
+import { CheckOrX } from '../../../Form/CheckOrX';
+import { Button1, Button2 } from '../../../Utils/Button';
+import { paths, components } from '../../../../types/gallery/api_schema_client';
+import { getIsApiKeyAvailable } from '../../../../services/api-services/gallery';
+import { updateAuthFromFetchResponse } from '../../../../utils/api';
+
 interface UpdateApiKeyProps {
   authContext: AuthContextType;
-  apiKey: TApiKey;
-  updateApiKeyFunc: TUpdateApiKeyFunc;
+  apiKey: ApiKey;
+  updateApiKeyFunc: UpdateApiKeyFunc;
 }
 
-function UpdateApiKey({
+export function UpdateApiKey({
   authContext,
   apiKey,
   updateApiKeyFunc,
 }: UpdateApiKeyProps) {
-  interface ValidatedApiKeyAvailable {
-    name: ValidatedInputState<string>;
-    expiry: ValidatedInputState<Date | null>;
-  }
-
   const [loading, setLoading] = useState<boolean>(false);
-
   const [name, setName] = useState<ValidatedInputState<string>>({
     ...defaultValidatedInputState<string>(apiKey.name),
   });
@@ -27,7 +35,7 @@ function UpdateApiKey({
   const [modified, setModified] = useState<boolean>(false);
 
   const [updateApiKeyInputStatus, setUpdateApiKeyInputStatus] =
-    useState<ValidatedInputState<any>['status']>(null);
+    useState<ValidatedInputState<any>['status']>('loading');
 
   useEffect(() => {
     setNameModified(apiKey.name !== name.value);
@@ -62,11 +70,11 @@ function UpdateApiKey({
         e.preventDefault();
         setLoading(true);
 
-        const apiKeyUpdate = {};
+        const apiKeyUpdate: components['schemas']['ApiKeyUpdate'] = {};
         if (nameModified) {
           apiKeyUpdate['name'] = name.value;
         }
-        if (expiryModified) {
+        if (expiryModified && expiry.value !== null) {
           apiKeyUpdate['expiry'] = new Date(expiry.value).toISOString();
         }
         if (await updateApiKeyFunc(apiKey.id, apiKeyUpdate)) {
@@ -87,14 +95,18 @@ function UpdateApiKey({
               if (name === apiKey.name) {
                 return true;
               } else {
-                const { status } = await getIsApiKeyAvailable.request({
-                  authContext,
-                  params: {
-                    name: name,
-                  },
-                });
-                if (status === 200) {
-                  return true;
+                const { data } = updateAuthFromFetchResponse(
+                  await getIsApiKeyAvailable.request({
+                    params: {
+                      query: {
+                        name: name,
+                      },
+                    },
+                  }),
+                  authContext
+                );
+                if (data !== undefined) {
+                  return data.available;
                 } else {
                   return false;
                 }

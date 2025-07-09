@@ -24,6 +24,26 @@ import {
 export type PossibleApiSchemaClientPaths = GalleryApiClientPaths;
 export type PossibleApiSchema = GalleryApiSchema;
 
+export type ElementType<T> = T extends readonly (infer U)[] ? U : never;
+
+// Helper type to check if a property exists and is the right type
+export type HasNumericProperty<T, K extends string> = K extends keyof T
+  ? T[K] extends number
+    ? T[K]
+    : never
+  : never;
+
+// Conditional interface that only includes properties that exist in the schema
+export type NumericQueryParamSchema<T> = T & {
+  [K in 'default' | 'minimum' | 'maximum']: K extends keyof T
+    ? T[K] extends number
+      ? T[K] // Keep as required if it exists and is a number
+      : never
+    : never;
+} extends infer U
+  ? { [K in keyof U as U[K] extends never ? never : K]: U[K] }
+  : never;
+
 export type MyInitParam<Init> = RequiredKeysOf<Init> extends never
   ? [(Init & { [key: string]: unknown })?]
   : [Init & { [key: string]: unknown }];

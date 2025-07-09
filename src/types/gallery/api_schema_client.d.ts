@@ -943,9 +943,12 @@ export interface components {
         /** ApiKeyAdminUpdate */
         ApiKeyAdminUpdate: {
             /** Name */
-            name?: string | null;
-            /** Expiry */
-            expiry?: string | null;
+            name?: string;
+            /**
+             * Expiry
+             * Format: date-time
+             */
+            expiry?: string;
         };
         /** ApiKeyCreate */
         ApiKeyCreate: {
@@ -984,9 +987,12 @@ export interface components {
         /** ApiKeyUpdate */
         ApiKeyUpdate: {
             /** Name */
-            name?: string | null;
-            /** Expiry */
-            expiry?: string | null;
+            name?: string;
+            /**
+             * Expiry
+             * Format: date-time
+             */
+            expiry?: string;
         };
         /** Body_login_password_auth_login_password__post */
         Body_login_password_auth_login_password__post: {

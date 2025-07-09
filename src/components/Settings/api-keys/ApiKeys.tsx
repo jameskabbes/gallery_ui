@@ -10,6 +10,8 @@ import {
   ModalUpdateType,
   GetElementTypeFromArray,
   ScopeId,
+  NumericQueryParamSchema,
+  ElementType,
 } from '../../../types';
 import { defaultValidatedInputState } from '../../../utils/useValidatedInput';
 
@@ -40,19 +42,27 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader1 } from '../../Utils/Loader';
 import { Surface } from '../../Utils/Surface';
 import { Pagination } from '../../Utils/Pagination';
-import { getQueryParamKeys } from '../../../utils/queryParams';
+import {
+  getQueryParamKeys,
+  validateNumericSchema,
+} from '../../../utils/queryParams';
 import { boundNumber } from '../../../utils/boundNumber';
 import type {
   AddApiKeyFunc,
   ApiKey,
+  ApiKeyCount,
   ApiKeys,
   ApiKeyScopeIds,
+  ApiKeyViewProps,
   DeleteApiKeyFunc,
   ModifyApiKeyScopeFunc,
+  SelectedIndex,
   UpdateApiKeyFunc,
 } from '../../../types/gallery/types';
-
-const deleteApiKeyModalKey = 'modal-confirmation-delete-api-key';
+import { ApiKeyView, makeApiKeyModalViewKey } from './modals/ApiKeyView';
+import { validatePhoneNumberLength } from 'libphonenumber-js';
+import { AddApiKey, addApiKeyModalKey } from './forms/AddApiKey';
+import { ApiKeyTableRowScope } from './ApiKeyTableRowScope';
 
 interface ApiKeyProps {
   authContext: AuthContextType;
@@ -87,6 +97,31 @@ const orderByDescFields = (() => {
   }
 })();
 
+const limitSchema = validateNumericSchema(queryParamSchemas['limit'].schema);
+const offsetSchema = validateNumericSchema(queryParamSchemas['offset'].schema);
+
+function boundLimit(
+  limit: RequiredQueryParams['limit']
+): RequiredQueryParams['limit'] {
+  return boundNumber(
+    limit,
+    limitSchema.default,
+    limitSchema.minimum,
+    limitSchema.maximum
+  );
+}
+
+function boundOffset(
+  offset: RequiredQueryParams['offset']
+): RequiredQueryParams['offset'] {
+  return boundNumber(
+    offset,
+    offsetSchema.default,
+    offsetSchema.minimum,
+    offsetSchema.maximum
+  );
+}
+
 export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
   const modalsContext = useContext(ModalsContext);
   const { activateButtonConfirmation } = useConfirmationModal();
@@ -103,46 +138,18 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     const orderByDesc = query.getAll('order_by_desc');
     return {
       limit: (() => {
-        if (typeof queryParamSchemas['limit'].schema.default === 'number') {
-          if (limit === null) {
-            return queryParamSchemas['limit'].schema.default;
-          } else {
-            const boundedLimit = boundNumber(
-              Number(limit),
-              queryParamSchemas['limit'].schema.default,
-              queryParamSchemas['limit'].schema.minimum,
-              queryParamSchemas['limit'].schema.maximum
-            );
-            if (typeof boundedLimit === 'number') {
-              return boundedLimit;
-            } else {
-              throw new Error('Bounded limit is not a number');
-            }
-          }
+        if (limit === null) {
+          return limitSchema.default;
         } else {
-          throw new Error('Default limit is not a number');
+          return boundLimit(Number(limit));
         }
       })(),
 
       offset: (() => {
-        if (typeof queryParamSchemas['offset'].schema.default === 'number') {
-          if (offset === null) {
-            return queryParamSchemas['offset'].schema.default;
-          } else {
-            const boundedOffset = boundNumber(
-              Number(offset),
-              queryParamSchemas['offset'].schema.default,
-              queryParamSchemas['offset'].schema.minimum,
-              queryParamSchemas['offset'].schema.maximum
-            );
-            if (typeof boundedOffset === 'number') {
-              return boundedOffset;
-            } else {
-              throw new Error('Bounded offset is not a number');
-            }
-          }
+        if (offset === null) {
+          return offsetSchema.default;
         } else {
-          throw new Error('Default offset is not a number');
+          return boundOffset(Number(offset));
         }
       })(),
 
@@ -185,13 +192,13 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     }
   }, [queryParams]);
 
-  const [apiKeyCount, setApiKeyCount] = useState<number | null>(null);
+  const [apiKeyCount, setApiKeyCount] = useState<ApiKeyCount>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
   const [apiKeyIdIndex, setApiKeyIdIndex] = useState<ApiKey['id'][]>([]);
   const [apiKeyScopeIds, setApiKeyScopeIds] = useState<ApiKeyScopeIds>({});
   const [availableScopeIds, setAvailableScopeIds] = useState<ScopeId[]>([]);
 
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<SelectedIndex>(null);
 
   // show the available scopes based on the user's role
   useEffect(() => {
@@ -221,7 +228,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     }
   });
 
-  const { data, refetch } = useApiCall(getApiKeysSettingsPage, []);
+  const { data, refetch, loading } = useApiCall(getApiKeysSettingsPage, []);
 
   const hasMounted = useRef(false);
 
@@ -378,11 +385,20 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     setApiKeys((prev: ApiKeys) => {
       const updated = { ...prev };
 
-      updated[apiKeyId] = { ...updated[apiKeyId], ...apiKeyUpdate };
+      const originalApiKey = updated[apiKeyId];
+      if (originalApiKey === undefined) {
+        return updated;
+      }
+
+      updated[apiKeyId] = {
+        ...originalApiKey,
+        ...apiKeyUpdate,
+      };
+
       return updated;
     });
 
-    const { data, error } = updateAuthFromFetchResponse(
+    const { data } = updateAuthFromFetchResponse(
       await patchApiKey.request({
         params: {
           path: {
@@ -492,49 +508,60 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
 
   useEffect(() => {
     if (selectedIndex !== null) {
-      if (apiKeyViewFirstRenderRef.current) {
-        const modal: ModalType<ApiKeyViewProps> = {
-          key: makeApiKeyModalViewKey(apiKeyIdIndex[selectedIndex]),
-          Component: ApiKeyView,
-          componentProps: {
-            selectedIndex: selectedIndex,
-            setSelectedIndex: setSelectedIndex,
-            apiKey: apiKeys[apiKeyIdIndex[selectedIndex]],
-            scopeIds: apiKeyScopeIds[apiKeyIdIndex[selectedIndex]],
-            availableScopeIds,
-            updateApiKeyFunc,
-            deleteApiKeyScopeFunc,
-            deleteApiKeyFunc,
-            addApiKeyScopeFunc,
-            authContext,
-            modalsContext,
-            activateButtonConfirmation,
-          },
-          contentAdditionalClassName: 'max-w-[400px] w-full',
-          onExit: () => setSelectedIndex(null),
-        };
-        modalsContext.pushModals([modal]);
-        apiKeyViewFirstRenderRef.current = false;
+      const apiKeyId = apiKeyIdIndex[selectedIndex];
+      if (apiKeyId !== undefined) {
+        const apiKey = apiKeys[apiKeyId];
+        const scopeIds = apiKeyScopeIds[apiKeyId];
+        if (apiKey !== undefined && scopeIds !== undefined) {
+          if (apiKeyViewFirstRenderRef.current) {
+            const modal: ModalType<ApiKeyViewProps> = {
+              key: makeApiKeyModalViewKey(apiKeyId),
+              Component: ApiKeyView,
+              componentProps: {
+                selectedIndex: selectedIndex,
+                setSelectedIndex: setSelectedIndex,
+                apiKey: apiKey,
+                scopeIds: scopeIds,
+                availableScopeIds,
+                updateApiKeyFunc,
+                deleteApiKeyScopeFunc,
+                deleteApiKeyFunc,
+                addApiKeyScopeFunc,
+                authContext,
+                modalsContext,
+                activateButtonConfirmation,
+              },
+              contentAdditionalClassName: 'max-w-[400px] w-full',
+              onExit: () => setSelectedIndex(null),
+            };
+            modalsContext.pushModals([modal]);
+            apiKeyViewFirstRenderRef.current = false;
+          } else {
+            apiKeyViewFirstRenderRef.current = true;
+          }
+        }
       }
-    } else {
-      apiKeyViewFirstRenderRef.current = true;
     }
   }, [selectedIndex]);
 
   useEffect(() => {
-    if (
-      selectedIndexRef.current !== null &&
-      !apiKeyViewFirstRenderRef.current
-    ) {
-      const modal: ModalUpdateType<ApiKeyViewProps> = {
-        key: makeApiKeyModalViewKey(apiKeyIdIndex[selectedIndex]),
-        componentProps: {
-          apiKey: apiKeys[apiKeyIdIndex[selectedIndex]],
-          scopeIds: apiKeyScopeIds[apiKeyIdIndex[selectedIndex]],
-          availableScopeIds,
-        },
-      };
-      modalsContext.updateModals([modal]);
+    if (selectedIndex !== null && !apiKeyViewFirstRenderRef.current) {
+      const apiKeyId = apiKeyIdIndex[selectedIndex];
+      if (apiKeyId !== undefined) {
+        const apiKey = apiKeys[apiKeyId];
+        const scopeIds = apiKeyScopeIds[apiKeyId];
+        if (apiKey !== undefined && scopeIds !== undefined) {
+          const modal: ModalUpdateType<ApiKeyViewProps> = {
+            key: makeApiKeyModalViewKey(apiKeyId),
+            componentProps: {
+              apiKey: apiKey,
+              scopeIds: scopeIds,
+              availableScopeIds,
+            },
+          };
+          modalsContext.updateModals([modal]);
+        }
+      }
     }
   }, [apiKeys, apiKeyScopeIds, availableScopeIds]);
 
@@ -567,11 +594,21 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
               </Button1>
             </div>
             <Pagination
-              loading={qer}
-              offset={offset}
-              setOffset={setOffset}
-              limit={limit}
-              setLimit={setLimit}
+              loading={loading}
+              offset={queryParams['offset']}
+              setOffset={(offset: RequiredQueryParams['offset']) => {
+                setQueryParams((prev) => ({
+                  ...prev,
+                  offset: boundOffset(offset),
+                }));
+              }}
+              limit={queryParams['limit']}
+              setLimit={(limit: RequiredQueryParams['limit']) => {
+                setQueryParams((prev) => ({
+                  ...prev,
+                  limit: boundLimit(limit),
+                }));
+              }}
               count={apiKeyIdIndex.length}
               total={apiKeyCount}
             />
@@ -581,17 +618,25 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
             <table className="min-w-full">
               <thead className="text-left">
                 <tr>
-                  {['name', 'issued', 'expiry'].map((field: OrderByField) => (
+                  {(
+                    [
+                      'name',
+                      'issued',
+                      'expiry',
+                    ] as RequiredQueryParams['order_by']
+                  ).map((field) => (
                     <th key={field}>
                       {(() => {
                         let orderByState: OrderByState = 'off';
 
                         // get index of field in orderBy
-                        const orderByIndex = orderBy.indexOf(field);
+                        const orderByIndex =
+                          queryParams['order_by'].indexOf(field);
                         if (orderByIndex !== -1) {
                           orderByState = 'asc';
                         }
-                        const orderByDescIndex = orderByDesc.indexOf(field);
+                        const orderByDescIndex =
+                          queryParams['order_by_desc'].indexOf(field);
                         if (orderByDescIndex !== -1) {
                           orderByState = 'desc';
                         }
@@ -603,27 +648,33 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                                 className="flex flex-row items-center surface-hover cursor-pointer pl-2"
                                 onClick={() => {
                                   if (orderByState === 'off') {
-                                    setOrderBy((prev) => {
-                                      const updated = [...prev, field];
-                                      return updated;
-                                    });
+                                    setQueryParams((prev) => ({
+                                      ...prev,
+                                      order_by: [...prev.order_by, field],
+                                    }));
                                   } else if (orderByState === 'asc') {
-                                    setOrderByDesc((prev) => {
-                                      const updated = [...prev, field];
-                                      return updated;
-                                    });
+                                    setQueryParams((prev) => ({
+                                      ...prev,
+                                      order_by_desc: [
+                                        ...prev.order_by_desc,
+                                        field,
+                                      ],
+                                    }));
                                   } else if (orderByState === 'desc') {
-                                    setOrderBy((prev) => {
-                                      const updated = prev.filter(
-                                        (item) => item !== field
-                                      );
-                                      return updated;
-                                    });
-                                    setOrderByDesc((prev) => {
-                                      const updated = prev.filter(
-                                        (item) => item !== field
-                                      );
-                                      return updated;
+                                    setQueryParams((prev) => {
+                                      const updatedOrderBy =
+                                        prev.order_by.filter(
+                                          (item) => item !== field
+                                        );
+                                      const updatedOrderByDesc =
+                                        prev.order_by_desc.filter(
+                                          (item) => item !== field
+                                        );
+                                      return {
+                                        ...prev,
+                                        order_by: updatedOrderBy,
+                                        order_by_desc: updatedOrderByDesc,
+                                      };
                                     });
                                   }
                                 }}
@@ -639,7 +690,8 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                                       <IoCaretUp />
                                     )}
                                     {(() => {
-                                      const index = orderBy.indexOf(field);
+                                      const index =
+                                        queryParams['order_by'].indexOf(field);
                                       return index + 1;
                                     })()}
                                   </>
@@ -659,37 +711,44 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                 </tr>
               </thead>
               <tbody>
-                {apiKeyIdIndex.map((apiKeyId, index) => (
-                  <Surface key={apiKeyId}>
-                    <tr
-                      className="surface-hover cursor-pointer border-[1px]"
-                      onClick={() => {
-                        setSelectedIndex(index);
-                      }}
-                    >
-                      <td className="px-2 py-1 truncate">
-                        {apiKeys[apiKeyId].name}
-                      </td>
-                      <td className="px-2 py-1">
-                        {new Date(apiKeys[apiKeyId].issued).toLocaleString()}
-                      </td>
-                      <td className="px-2 py-1">
-                        {new Date(apiKeys[apiKeyId].expiry).toLocaleString()}
-                      </td>
-                      {availableScopeIds.map((scopeId) => (
-                        <td key={scopeId} className="px-2 py-1">
-                          <ApiKeyTableRowScope
-                            scopeId={scopeId}
-                            apiKey={apiKeys[apiKeyId]}
-                            scopeIds={apiKeyScopeIds[apiKeyId]}
-                            addApiKeyScopeFunc={addApiKeyScopeFunc}
-                            deleteApiKeyScopeFunc={deleteApiKeyScopeFunc}
-                          />
+                {apiKeyIdIndex.map((apiKeyId, index) => {
+                  const apiKey = apiKeys[apiKeyId];
+                  const scopeIds = apiKeyScopeIds[apiKeyId];
+
+                  if (apiKey === undefined || scopeIds === undefined) {
+                    return null; // or return empty fragment
+                  }
+
+                  return (
+                    <Surface key={apiKeyId}>
+                      <tr
+                        className="surface-hover cursor-pointer border-[1px]"
+                        onClick={() => {
+                          setSelectedIndex(index);
+                        }}
+                      >
+                        <td className="px-2 py-1 truncate">{apiKey.name}</td>
+                        <td className="px-2 py-1">
+                          {new Date(apiKey.issued).toLocaleString()}
                         </td>
-                      ))}
-                    </tr>
-                  </Surface>
-                ))}
+                        <td className="px-2 py-1">
+                          {new Date(apiKey.expiry).toLocaleString()}
+                        </td>
+                        {availableScopeIds.map((scopeId) => (
+                          <td key={scopeId} className="px-2 py-1">
+                            <ApiKeyTableRowScope
+                              scopeId={scopeId}
+                              apiKey={apiKey}
+                              scopeIds={scopeIds}
+                              addApiKeyScopeFunc={addApiKeyScopeFunc}
+                              deleteApiKeyScopeFunc={deleteApiKeyScopeFunc}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    </Surface>
+                  );
+                })}{' '}
               </tbody>
             </table>
           </div>

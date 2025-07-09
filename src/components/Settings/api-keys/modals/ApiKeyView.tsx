@@ -1,25 +1,18 @@
-interface ApiKeyViewProps {
-  selectedIndex: number;
-  setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
-  apiKey: TApiKey;
-  scopeIds: Set<ScopeID>;
-  availableScopeIds: ScopeID[];
-  updateApiKeyFunc: TUpdateApiKeyFunc;
-  deleteApiKeyScopeFunc: TModifyApiKeyScopeFunc;
-  addApiKeyScopeFunc: TModifyApiKeyScopeFunc;
-  deleteApiKeyFunc: TDeleteApiKeyFunc;
-  authContext: AuthContextType;
-  modalsContext: ModalsContextType;
-  activateButtonConfirmation: ReturnType<
-    typeof useConfirmationModal
-  >['activateButtonConfirmation'];
-}
+import { useState } from 'react';
+import { ApiKey, ApiKeyViewProps } from '../../../../types/gallery/types';
+import { Button2 } from '../../../Utils/Button';
+import { ApiKeyCodeModal } from './CodeModal';
+import { config } from '../../../../config/config';
+import { ApiKeyTableRowScope } from '../ApiKeyTableRowScope';
+import { UpdateApiKey } from '../forms/UpdateApiKey';
 
-function makeApiKeyModalViewKey(id: TApiKey['id']): string {
+const deleteApiKeyModalKey = 'modal-confirmation-delete-api-key';
+
+export function makeApiKeyModalViewKey(id: ApiKey['id']): string {
   return `modal-api-key-view-${id}`;
 }
 
-function ApiKeyView({
+export function ApiKeyView({
   selectedIndex,
   setSelectedIndex,
   apiKey,
@@ -36,7 +29,7 @@ function ApiKeyView({
   type Mode = 'code' | 'scopes' | 'edit';
 
   const modes: Mode[] = ['edit', 'scopes', 'code'];
-  const [mode, setMode] = useState<Mode>(modes[0]);
+  const [mode, setMode] = useState<Mode>(modes[0] || 'edit');
 
   return (
     <div className="flex flex-col space-y-4 mt-2">
@@ -82,7 +75,7 @@ function ApiKeyView({
       </div>
       <div className="flex flex-col min-h-[300px] h-full overflow-y-scroll">
         {mode === 'code' ? (
-          <ApiKeyCodeModal apiKey={apiKey} authContext={authContext} />
+          <ApiKeyCodeModal apiKeyId={apiKey.id} />
         ) : mode === 'scopes' ? (
           <>
             {availableScopeIds.map((scopeId) => (
@@ -111,9 +104,4 @@ function ApiKeyView({
       </div>
     </div>
   );
-}
-
-interface ApiKeysProps {
-  authContext: AuthContextType;
-  toastContext: ToastContextType;
 }

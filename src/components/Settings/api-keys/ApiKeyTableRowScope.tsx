@@ -1,19 +1,24 @@
+import { useEffect, useRef, useState } from 'react';
+import { ScopeId } from '../../../types';
+import { ApiKey, ModifyApiKeyScopeFunc } from '../../../types/gallery/types';
+import { Toggle1 } from '../../Utils/Toggle';
+
 interface ApiKeyTableRowScopeProps {
-  scopeId: ScopeID;
-  apiKey: TApiKey;
-  scopeIds: Set<ScopeID>;
-  deleteApiKeyScopeFunc: TModifyApiKeyScopeFunc;
-  addApiKeyScopeFunc: TModifyApiKeyScopeFunc;
+  scopeId: ScopeId;
+  apiKey: ApiKey;
+  scopeIds: Set<ScopeId>;
+  deleteApiKeyScopeFunc: ModifyApiKeyScopeFunc;
+  addApiKeyScopeFunc: ModifyApiKeyScopeFunc;
 }
 
-function ApiKeyTableRowScope({
+export function ApiKeyTableRowScope({
   scopeId,
   apiKey,
   scopeIds,
   addApiKeyScopeFunc,
   deleteApiKeyScopeFunc,
 }: ApiKeyTableRowScopeProps) {
-  const debounceTimeout = useRef(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [debouncedState, setDebouncedState] = useState(scopeIds.has(scopeId));
 
   useEffect(() => {

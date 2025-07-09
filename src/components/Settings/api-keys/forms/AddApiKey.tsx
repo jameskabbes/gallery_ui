@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { AuthContextType, ModalsContextType } from '../../../../types';
-import { AddApiKeyFunc } from '../types';
 import { ValidatedInputState } from '../../../../types';
 import { defaultValidatedInputState } from '../../../../utils/useValidatedInput';
 import { useValidatedInput } from '../../../../utils/useValidatedInput';
@@ -11,6 +10,7 @@ import { config } from '../../../../config/config';
 import { ButtonSubmit } from '../../../Utils/Button';
 import { CheckOrX } from '../../../Form/CheckOrX';
 import { getIsApiKeyAvailable } from '../../../../services/api-services/gallery';
+import { AddApiKeyFunc } from '../../../../types/gallery/types';
 
 interface AddApiKeyProps {
   authContext: AuthContextType;
@@ -18,9 +18,9 @@ interface AddApiKeyProps {
   modalsContext: ModalsContextType;
 }
 
-const addApiKeyModalKey = 'modal-add-api-key';
+export const addApiKeyModalKey = 'modal-add-api-key';
 
-function AddApiKey({
+export function AddApiKey({
   authContext,
   addApiKeyFunc,
   modalsContext,

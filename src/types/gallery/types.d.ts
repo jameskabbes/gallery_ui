@@ -29,3 +29,23 @@ export type UpdateApiKeyFunc = (
   apiKeyId: ApiKey['id'],
   apiKeyUpdate: Parameters<typeof patchApiKey.request>['0']['body']
 ) => Promise<boolean>;
+
+export type ApiKeyCount = number | null;
+export type SelectedIndex = number | null;
+
+export interface ApiKeyViewProps {
+  selectedIndex: SelectedIndex;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndex>>;
+  apiKey: ApiKey;
+  scopeIds: Set<ScopeID>;
+  availableScopeIds: ScopeID[];
+  updateApiKeyFunc: TUpdateApiKeyFunc;
+  deleteApiKeyScopeFunc: TModifyApiKeyScopeFunc;
+  addApiKeyScopeFunc: TModifyApiKeyScopeFunc;
+  deleteApiKeyFunc: TDeleteApiKeyFunc;
+  authContext: AuthContextType;
+  modalsContext: ModalsContextType;
+  activateButtonConfirmation: ReturnType<
+    typeof useConfirmationModal
+  >['activateButtonConfirmation'];
+}
