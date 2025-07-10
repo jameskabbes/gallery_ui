@@ -29,9 +29,9 @@ interface Schemas {
   ApiKeyJWTResponse: ApiKeyJWTResponse;
   ApiKeyPrivate: ApiKeyPrivate;
   ApiKeyUpdate: ApiKeyAdminUpdate;
-  Body_login_password_auth_login_password__post: Bodyloginpasswordauthloginpasswordpost;
-  Body_token_auth_token__post: Bodyloginpasswordauthloginpasswordpost;
-  Body_upload_file_galleries__gallery_id__upload__post: Bodyuploadfilegalleriesgalleryiduploadpost;
+  Body_login_password_auth_login_password_post: Bodyloginpasswordauthloginpasswordpost;
+  Body_token_auth_token_post: Bodyloginpasswordauthloginpasswordpost;
+  Body_upload_file_galleries__gallery_id__upload_post: Bodyuploadfilegalleriesgalleryiduploadpost;
   DetailOnlyResponse: DetailOnlyResponse;
   GalleryAdminCreate: GalleryAdminCreate;
   GalleryAdminUpdate: GalleryAdminUpdate;
@@ -101,7 +101,7 @@ interface UserUpdate {
   title: string;
 }
 interface Properties35 {
-  phone_number: Clientid;
+  phone_number: Schema10;
   username: Name;
   password: Description;
   email: Email2;
@@ -134,11 +134,11 @@ interface UserAdminUpdate {
   title: string;
 }
 interface Properties32 {
-  phone_number: Clientid;
+  phone_number: Schema10;
   username: Name;
   password: Description;
   email: Email2;
-  user_role_id: Clientid;
+  user_role_id: Schema10;
 }
 interface Email2 {
   anyOf: AnyOf8[];
@@ -157,7 +157,7 @@ interface UserAdminCreate {
   title: string;
 }
 interface Properties31 {
-  phone_number: Clientid;
+  phone_number: Schema10;
   username: Name;
   password: Description;
   email: Email;
@@ -346,7 +346,7 @@ interface User {
   anyOf: AnyOf6[];
 }
 interface AnyOf6 {
-  $ref?: string;
+  '$ref'?: string;
   type?: string;
 }
 interface GetUserSessionInfoNestedReturn {
@@ -368,7 +368,7 @@ interface Properties13 {
   id: Schema5;
   user_id: Schema5;
   name: Schema6;
-  parent_id: Clientid;
+  parent_id: Schema10;
   description: Description;
   date: Date;
 }
@@ -382,7 +382,7 @@ interface Properties12 {
   id: Schema5;
   user_id: Schema5;
   name: Schema6;
-  parent_id: Clientid;
+  parent_id: Schema10;
   description: Description;
   date: Date;
   visibility_level: Schema5;
@@ -419,9 +419,9 @@ interface GalleryAdminUpdate {
 }
 interface Properties9 {
   name: Name;
-  user_id: Clientid;
-  visibility_level: Clientid;
-  parent_id: Clientid;
+  user_id: Schema10;
+  visibility_level: Schema10;
+  parent_id: Schema10;
   description: Description;
   date: Date;
 }
@@ -447,7 +447,7 @@ interface Properties8 {
   description: Description;
   date: Date;
   user_id: Schema5;
-  parent_id: Clientid;
+  parent_id: Schema10;
 }
 interface Date {
   anyOf: AnyOf[];
@@ -492,12 +492,8 @@ interface Properties5 {
   username: Schema5;
   password: Schema5;
   scope: Scope;
-  client_id: Clientid;
-  client_secret: Clientid;
-}
-interface Clientid {
-  anyOf: AnyOf2[];
-  title: string;
+  client_id: Schema10;
+  client_secret: Schema10;
 }
 interface Scope {
   type: string;
@@ -514,8 +510,8 @@ interface AnyOf3 {
 }
 interface Staysignedin {
   type: string;
-  default: boolean;
   title: string;
+  default: boolean;
 }
 interface ApiKeyPrivate {
   properties: Properties4;
@@ -571,59 +567,59 @@ interface Expiry {
   title: string;
 }
 interface Paths {
-  '/auth/': Auth;
-  '/auth/token/': Authtoken;
-  '/auth/login/password/': Authloginpassword;
-  '/auth/login/magic-link/': Authloginmagiclink;
-  '/auth/login/otp/email/': Authloginotpemail;
-  '/auth/login/otp/phone_number/': Authloginotpemail;
-  '/auth/signup/': Authloginotpemail;
-  '/auth/login/google/': Authlogingoogle;
-  '/auth/request/signup/': Authrequestsignup;
-  '/auth/request/magic-link/email/': Authrequestsignup;
-  '/auth/request/magic-link/sms/': Authrequestsignup;
-  '/auth/request/otp/email/': Authrequestsignup;
-  '/auth/request/otp/sms/': Authrequestsignup;
-  '/auth/logout/': Authlogout;
+  '/auth': Auth;
+  '/auth/token': Authtoken;
+  '/auth/login/password': Authloginpassword;
+  '/auth/login/magic-link': Authloginmagiclink;
+  '/auth/login/otp/email': Authloginotpemail;
+  '/auth/login/otp/phone_number': Authloginotpemail;
+  '/auth/signup': Authloginotpemail;
+  '/auth/login/google': Authlogingoogle;
+  '/auth/request/signup': Authrequestsignup;
+  '/auth/request/magic-link/email': Authrequestsignup;
+  '/auth/request/magic-link/sms': Authrequestsignup;
+  '/auth/request/otp/email': Authrequestsignup;
+  '/auth/request/otp/sms': Authrequestsignup;
+  '/auth/logout': Authlogout;
   '/users/': Users;
-  '/users/me/': Usersme;
-  '/users/{user_id}/': Usersuserid;
-  '/users/available/username/{username}/': Usersavailableusernameusername;
+  '/users/me': Usersme;
+  '/users/{user_id}': Usersuserid;
+  '/users/available/username/{username}': Usersavailableusernameusername;
   '/galleries/': Galleries;
-  '/galleries/{gallery_id}/': Galleriesgalleryid;
-  '/galleries/details/available/': Galleriesdetailsavailable;
-  '/galleries/{gallery_id}/upload/': Galleriesgalleryidupload;
-  '/galleries/{gallery_id}/sync/': Galleriesgalleryidsync;
+  '/galleries/{gallery_id}': Galleriesgalleryid;
+  '/galleries/details/available': Galleriesdetailsavailable;
+  '/galleries/{gallery_id}/upload': Galleriesgalleryidupload;
+  '/galleries/{gallery_id}/sync': Galleriesgalleryidsync;
   '/user-access-tokens/': Users;
-  '/user-access-tokens/{user_access_token_id}/': Useraccesstokensuseraccesstokenid;
-  '/user-access-tokens/details/count/': Useraccesstokensdetailscount;
+  '/user-access-tokens/{user_access_token_id}': Useraccesstokensuseraccesstokenid;
+  '/user-access-tokens/details/count': Useraccesstokensdetailscount;
   '/api-keys/': Apikeys;
-  '/api-keys/{api_key_id}/': Galleriesgalleryid;
-  '/api-keys/{api_key_id}/generate-jwt/': Usersuserid;
-  '/api-keys/details/available/': Apikeysdetailsavailable;
-  '/api-keys/details/count/': Useraccesstokensdetailscount;
-  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/': Apikeyscopesapikeysapikeyidscopesscopeid;
-  '/pages/profile/': Auth;
-  '/pages/home/': Auth;
-  '/pages/settings/': Auth;
-  '/pages/settings/api-keys/': Pagessettingsapikeys;
-  '/pages/settings/user-access-tokens/': Pagessettingsuseraccesstokens;
-  '/pages/styles/': Auth;
-  '/pages/galleries/{gallery_id}/': Pagesgalleriesgalleryid;
+  '/api-keys/{api_key_id}': Galleriesgalleryid;
+  '/api-keys/{api_key_id}/generate-jwt': Usersuserid;
+  '/api-keys/details/available': Apikeysdetailsavailable;
+  '/api-keys/details/count': Useraccesstokensdetailscount;
+  '/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}': Apikeyscopesapikeysapikeyidscopesscopeid;
+  '/pages/profile': Auth;
+  '/pages/home': Auth;
+  '/pages/settings': Auth;
+  '/pages/settings/api-keys': Pagessettingsapikeys;
+  '/pages/settings/user-access-tokens': Pagessettingsuseraccesstokens;
+  '/pages/styles': Auth;
+  '/pages/galleries': Pagesgalleries;
   '/admin/users/': Galleries;
-  '/admin/users/{user_id}/': Galleriesgalleryid;
-  '/admin/galleries/{gallery_id}/': Galleriesgalleryid;
+  '/admin/users/{user_id}': Galleriesgalleryid;
+  '/admin/galleries/{gallery_id}': Galleriesgalleryid;
   '/admin/galleries/': Admingalleries;
-  '/admin/galleries/details/available/': Galleriesdetailsavailable;
+  '/admin/galleries/details/available': Galleriesdetailsavailable;
   '/admin/galleries/users/{user_id}': Admingalleriesusersuserid;
   '/admin/user-access-tokens/users/{user_id}/': Admingalleriesusersuserid;
-  '/admin/user-access-tokens/{user_access_token_id}/': Useraccesstokensuseraccesstokenid;
+  '/admin/user-access-tokens/{user_access_token_id}': Useraccesstokensuseraccesstokenid;
   '/admin/user-access-tokens/': Admingalleries;
   '/admin/api-keys/users/{user_id}/': Adminapikeysusersuserid;
-  '/admin/api-keys/{api_key_id}/': Galleriesgalleryid;
+  '/admin/api-keys/{api_key_id}': Galleriesgalleryid;
   '/admin/api-keys/': Admingalleries;
-  '/admin/api-keys/details/available/': Adminapikeysdetailsavailable;
-  '/admin/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}/': Apikeyscopesapikeysapikeyidscopesscopeid;
+  '/admin/api-keys/details/available': Adminapikeysdetailsavailable;
+  '/admin/api-key-scopes/api-keys/{api_key_id}/scopes/{scope_id}': Apikeyscopesapikeysapikeyidscopesscopeid;
 }
 interface Adminapikeysdetailsavailable {
   get: Get14;
@@ -704,7 +700,7 @@ interface Schema11 {
 interface Admingalleries {
   post: Patch;
 }
-interface Pagesgalleriesgalleryid {
+interface Pagesgalleries {
   get: Get11;
 }
 interface Get11 {
@@ -722,10 +718,8 @@ interface Parameter7 {
   schema: Schema10;
 }
 interface Schema10 {
-  anyOf?: AnyOf2[];
+  anyOf: AnyOf2[];
   title: string;
-  type?: string;
-  default?: boolean;
 }
 interface AnyOf2 {
   type: string;
@@ -1073,7 +1067,8 @@ interface Content3 {
 interface Applicationjson2 {
   schema: Schema2;
 }
-interface Schema2 {}
+interface Schema2 {
+}
 interface Authlogingoogle {
   post: Post5;
 }
@@ -1176,7 +1171,7 @@ interface Applicationjson {
   schema: Schema;
 }
 interface Schema {
-  $ref: string;
+  '$ref': string;
 }
 interface Info {
   title: string;

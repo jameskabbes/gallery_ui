@@ -44,8 +44,8 @@ export function Gallery({ root = false }: Props) {
     [galleryId],
     {
       params: {
-        path: {
-          gallery_id: galleryId === undefined ? null : galleryId,
+        query: {
+          ...(galleryId !== undefined && { gallery_id: galleryId }),
         },
       },
     }
