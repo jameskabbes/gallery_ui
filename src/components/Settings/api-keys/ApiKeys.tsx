@@ -59,7 +59,7 @@ import type {
   SelectedIndex,
   UpdateApiKeyFunc,
 } from '../../../types/gallery/types';
-import { ApiKeyView, makeApiKeyModalViewKey } from './modals/ApiKeyView';
+import { ApiKeyView, apiKeyViewModalKey } from './modals/ApiKeyView';
 import { validatePhoneNumberLength } from 'libphonenumber-js';
 import { AddApiKey, addApiKeyModalKey } from './forms/AddApiKey';
 import { ApiKeyTableRowScope } from './ApiKeyTableRowScope';
@@ -123,6 +123,7 @@ function boundOffset(
 }
 
 export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
+  console.log('apikeys parent');
   const modalsContext = useContext(ModalsContext);
   const { activateButtonConfirmation } = useConfirmationModal();
 
@@ -136,6 +137,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     const offset = query.get('offset');
     const orderBy = query.getAll('order_by');
     const orderByDesc = query.getAll('order_by_desc');
+
     return {
       limit: (() => {
         if (limit === null) {
@@ -172,6 +174,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
 
   //   Update URL when state changes
   useEffect(() => {
+    console.log('queryParams have changed');
     const query = new URLSearchParams();
 
     for (const key of queryParamKeys) {
@@ -200,6 +203,9 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
 
   const [selectedIndex, setSelectedIndex] = useState<SelectedIndex>(null);
 
+  const [modalKey, setModalKey] = useState<number | null>(null);
+  const apiKeyViewFirstRenderRef = useRef(true);
+
   // show the available scopes based on the user's role
   useEffect(() => {
     if (authContext.state.user !== null) {
@@ -226,14 +232,23 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
 
       setAvailableScopeIds(scopeIds as ScopeId[]);
     }
-  });
+  }, []);
 
-  const { data, refetch, loading } = useApiCall(getApiKeysSettingsPage, []);
+  const { data, refetch, response, loading } = useApiCall(
+    getApiKeysSettingsPage,
+    [queryParams],
+    {
+      params: {
+        query: queryParams,
+      },
+    }
+  );
 
   const hasMounted = useRef(false);
 
   // refetch when limit, offset, orderBy, or orderByDesc changes
   useEffect(() => {
+    console.log('queryParams changed, checking for refetch');
     if (hasMounted.current) {
       refetch();
     } else {
@@ -243,7 +258,8 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
 
   // when data is fetched, update the states
   useEffect(() => {
-    if (data !== undefined) {
+    console.log('data and response changed, updating states');
+    if (response !== undefined && response.ok && data !== undefined) {
       setApiKeys(() => {
         const keys = {} as ApiKeys;
         for (const apiKey of data.api_keys) {
@@ -251,13 +267,13 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
         }
         return keys;
       });
-      //   setApiKeyScopeIds(() => {
-      //     const keys = {} as ApiKeyScopeIds;
-      //     for (const apiKey of data.api_keys) {
-      //       keys[apiKey.id] = new Set(apiKey.scope_ids);
-      //     }
-      //     return keys;
-      //   });
+      setApiKeyScopeIds(() => {
+        const keys = {} as ApiKeyScopeIds;
+        for (const apiKey of data.api_keys) {
+          keys[apiKey.id] = new Set(data.api_key_scopes[apiKey.id]);
+        }
+        return keys;
+      });
       setApiKeyIdIndex((prev) => {
         const keys = [] as ApiKey['id'][];
         for (const apiKey of data.api_keys) {
@@ -267,7 +283,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       });
       setApiKeyCount(data.api_key_count);
     }
-  }, [data]);
+  }, [data, response]);
 
   const addApiKeyScopeFunc: ModifyApiKeyScopeFunc = async (apiKey, scopeId) => {
     setApiKeyScopeIds((prev) => {
@@ -279,7 +295,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       };
     });
 
-    const { data, error } = updateAuthFromFetchResponse(
+    const { response } = updateAuthFromFetchResponse(
       await postApiKeyScope.request({
         params: {
           path: {
@@ -291,10 +307,10 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       authContext
     );
 
-    if (error !== undefined) {
+    if (response.ok) {
       setApiKeyScopeIds((prev: ApiKeyScopeIds) => {
         const updatedSet = new Set(prev[apiKey.id]);
-        updatedSet.delete(scopeId);
+        updatedSet.add(scopeId);
         return {
           ...prev,
           [apiKey.id]: updatedSet,
@@ -308,7 +324,6 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     scopeId
   ) => {
     const scopeName = config.scopeIdMapping[scopeId];
-
     setApiKeyScopeIds((prev: ApiKeyScopeIds) => {
       const updatedSet = new Set(prev[apiKey.id]);
       updatedSet.delete(scopeId);
@@ -318,7 +333,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       };
     });
 
-    const { data, error } = updateAuthFromFetchResponse(
+    const { response } = updateAuthFromFetchResponse(
       await deleteApiKeyScope.request({
         params: {
           path: {
@@ -330,10 +345,10 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       authContext
     );
 
-    if (error !== undefined) {
+    if (response.ok) {
       setApiKeyScopeIds((prev: ApiKeyScopeIds) => {
         const updatedSet = new Set(prev[apiKey.id]);
-        updatedSet.add(scopeId);
+        updatedSet.delete(scopeId);
         return {
           ...prev,
           [apiKey.id]: updatedSet,
@@ -347,14 +362,14 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       message: 'Creating API Key...',
     });
 
-    const { data, error } = updateAuthFromFetchResponse(
+    const { data, response } = updateAuthFromFetchResponse(
       await postApiKey.request({
         body: apiKeyCreate,
       }),
       authContext
     );
 
-    if (data !== undefined) {
+    if (response.ok && data !== undefined) {
       toastContext.update(toastId, {
         message: `Created API Key ${data.name}`,
         type: 'success',
@@ -398,7 +413,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       return updated;
     });
 
-    const { data } = updateAuthFromFetchResponse(
+    const { response, data } = updateAuthFromFetchResponse(
       await patchApiKey.request({
         params: {
           path: {
@@ -410,7 +425,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       authContext
     );
 
-    if (data !== undefined) {
+    if (response.ok && data !== undefined) {
       toastContext.update(toastId, {
         message: `Created API Key ${data.name}`,
         type: 'success',
@@ -457,7 +472,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     });
     setApiKeyCount((prev) => (prev === null ? null : prev - 1));
 
-    const { data, error } = updateAuthFromFetchResponse(
+    const { response } = updateAuthFromFetchResponse(
       await deleteApiKey.request({
         params: {
           path: {
@@ -468,7 +483,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
       authContext
     );
 
-    if (data !== undefined) {
+    if (response.ok) {
       toastContext.update(toastId, {
         message: `Deleted API Key ${apiKey.name}`,
         type: 'success',
@@ -499,26 +514,20 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
     }
   };
 
-  const selectedIndexRef = useRef(selectedIndex);
-  const apiKeyViewFirstRenderRef = useRef(true);
-
   useEffect(() => {
-    selectedIndexRef.current = selectedIndex;
-  }, [selectedIndex]);
-
-  useEffect(() => {
-    if (selectedIndex !== null) {
-      const apiKeyId = apiKeyIdIndex[selectedIndex];
-      if (apiKeyId !== undefined) {
-        const apiKey = apiKeys[apiKeyId];
-        const scopeIds = apiKeyScopeIds[apiKeyId];
-        if (apiKey !== undefined && scopeIds !== undefined) {
-          if (apiKeyViewFirstRenderRef.current) {
+    if (modalKey !== null) {
+      if (selectedIndex !== null) {
+        const apiKeyId = apiKeyIdIndex[selectedIndex];
+        if (apiKeyId !== undefined) {
+          const apiKey = apiKeys[apiKeyId];
+          const scopeIds = apiKeyScopeIds[apiKeyId];
+          if (apiKey !== undefined && scopeIds !== undefined) {
             const modal: ModalType<ApiKeyViewProps> = {
-              key: makeApiKeyModalViewKey(apiKeyId),
+              key: apiKeyViewModalKey,
               Component: ApiKeyView,
               componentProps: {
                 selectedIndex: selectedIndex,
+                apiKeyCount: apiKeyIdIndex.length,
                 setSelectedIndex: setSelectedIndex,
                 apiKey: apiKey,
                 scopeIds: scopeIds,
@@ -532,19 +541,25 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                 activateButtonConfirmation,
               },
               contentAdditionalClassName: 'max-w-[400px] w-full',
-              onExit: () => setSelectedIndex(null),
+              onExit: () => {
+                setSelectedIndex(null);
+                setModalKey(null);
+              },
             };
             modalsContext.pushModals([modal]);
             apiKeyViewFirstRenderRef.current = false;
-          } else {
-            apiKeyViewFirstRenderRef.current = true;
           }
         }
       }
+    } else {
+      apiKeyViewFirstRenderRef.current = true;
     }
-  }, [selectedIndex]);
+  }, [modalKey]);
 
   useEffect(() => {
+    console.log(
+      'selectedIndex apiKeys, apiKeyScopeIds, availableSCopeIds changed, checking for modal update'
+    );
     if (selectedIndex !== null && !apiKeyViewFirstRenderRef.current) {
       const apiKeyId = apiKeyIdIndex[selectedIndex];
       if (apiKeyId !== undefined) {
@@ -552,8 +567,10 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
         const scopeIds = apiKeyScopeIds[apiKeyId];
         if (apiKey !== undefined && scopeIds !== undefined) {
           const modal: ModalUpdateType<ApiKeyViewProps> = {
-            key: makeApiKeyModalViewKey(apiKeyId),
+            key: apiKeyViewModalKey,
             componentProps: {
+              selectedIndex: selectedIndex,
+              apiKeyCount: apiKeyIdIndex.length,
               apiKey: apiKey,
               scopeIds: scopeIds,
               availableScopeIds,
@@ -563,7 +580,27 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
         }
       }
     }
-  }, [apiKeys, apiKeyScopeIds, availableScopeIds]);
+  }, [selectedIndex, apiKeys, apiKeyScopeIds, availableScopeIds]);
+
+  useEffect(() => {
+    console.log('selectedIndex changed:', selectedIndex);
+    // Add your logic here if needed
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    console.log('apiKeys changed:', apiKeys);
+    // Add your logic here if needed
+  }, [apiKeys]);
+
+  useEffect(() => {
+    console.log('apiKeyScopeIds changed:', apiKeyScopeIds);
+    // Add your logic here if needed
+  }, [apiKeyScopeIds]);
+
+  useEffect(() => {
+    console.log('availableScopeIds changed:', availableScopeIds);
+    // Add your logic here if needed
+  }, [availableScopeIds]);
 
   if (authContext.state.user !== null) {
     return (
@@ -725,6 +762,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                         className="surface-hover cursor-pointer border-[1px]"
                         onClick={() => {
                           setSelectedIndex(index);
+                          setModalKey((prev) => (prev === null ? 0 : prev + 1));
                         }}
                       >
                         <td className="px-2 py-1 truncate">{apiKey.name}</td>
@@ -748,7 +786,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
                       </tr>
                     </Surface>
                   );
-                })}{' '}
+                })}
               </tbody>
             </table>
           </div>

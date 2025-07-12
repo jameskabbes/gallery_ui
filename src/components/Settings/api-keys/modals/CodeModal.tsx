@@ -46,7 +46,7 @@ export function ApiKeyCodeModal({ apiKeyId }: ApiKeyCodeModalProps) {
   return (
     <div
       id="api-key-code"
-      className="flex flex-col justify-between space-y-2 h-full"
+      className="flex flex-col flex-1 justify-between space-y-2"
     >
       <Card1
         onClick={() => copyCode()}
@@ -60,7 +60,7 @@ export function ApiKeyCodeModal({ apiKeyId }: ApiKeyCodeModalProps) {
           <p>Error generating code</p>
         ) : null}
       </Card1>
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-4 ">
         <p className="text-center h-4">
           {copySuccess ? 'Copied to clipboard' : null}
         </p>

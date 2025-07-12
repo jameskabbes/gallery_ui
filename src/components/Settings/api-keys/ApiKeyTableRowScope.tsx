@@ -21,6 +21,15 @@ export function ApiKeyTableRowScope({
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [debouncedState, setDebouncedState] = useState(scopeIds.has(scopeId));
 
+  // Sync debouncedState with props
+  useEffect(() => {
+    setDebouncedState(scopeIds.has(scopeId));
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+      debounceTimeout.current = null;
+    }
+  }, [scopeIds, scopeId]);
+
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
@@ -35,7 +44,13 @@ export function ApiKeyTableRowScope({
         }
       }, 500);
     }
-  }, [debouncedState, scopeIds, scopeId]);
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [debouncedState, scopeIds, scopeId, apiKey]);
 
   return (
     <Toggle1

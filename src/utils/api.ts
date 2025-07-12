@@ -28,13 +28,11 @@ function handleAuthContext<T>(
 export function updateAuthFromFetchResponse<
   T extends FetchResponse<any, any, any>
 >(fetchResponse: T, authContext: AuthContextType): T {
-  if (fetchResponse.data !== undefined) {
-    handleAuthContext(
-      authContext,
-      fetchResponse.response.headers,
-      fetchResponse.data
-    );
-  }
+  handleAuthContext(
+    authContext,
+    fetchResponse.response.headers,
+    fetchResponse.data
+  );
   return fetchResponse;
 }
 

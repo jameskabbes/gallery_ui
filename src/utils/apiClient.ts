@@ -5,6 +5,12 @@ import { paths as gallery_paths } from '../types/gallery/api_schema_client';
 export const galleryClient = createClient<gallery_paths>({
   baseUrl: config.backendUrl,
   credentials: 'include',
+  querySerializer: {
+    array: {
+      style: 'form',
+      explode: true,
+    },
+  },
 });
 
 // export const apiClient = axios.create({

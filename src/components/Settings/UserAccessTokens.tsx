@@ -164,7 +164,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
 
     setUserAccessTokenCount((prev) => (prev === null ? 0 : prev - 1));
 
-    const { data } = updateAuthFromFetchResponse(
+    const { response } = updateAuthFromFetchResponse(
       await deleteUserAccessToken.request({
         params: {
           path: {
@@ -175,7 +175,7 @@ export function UserAccessTokens({ authContext, toastContext }: Props) {
       authContext
     );
 
-    if (data !== undefined) {
+    if (response.ok) {
       toastContext.update(toastId, {
         message: `Deleted session`,
         type: 'success',

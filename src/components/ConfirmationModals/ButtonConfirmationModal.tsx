@@ -35,7 +35,7 @@ export function ButtonConfirmationModal({
       }}
       className="flex flex-col space-y-8"
     >
-      <header>{title}</header>
+      <header className="text-left">{title}</header>
       <p className="break-words">{message}</p>
       <div className="flex flex-row justify-center space-x-2">
         {showCancel && (

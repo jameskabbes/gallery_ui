@@ -71,11 +71,6 @@ export function Styles() {
 
   const [counter, setCounter] = useState<number>(0);
   const [modalKey, setModalKey] = useState<number | null>(null);
-  const modalKeyRef = useRef<number | null>(modalKey);
-
-  useEffect(() => {
-    modalKeyRef.current = modalKey;
-  }, [modalKey]);
 
   const firstModalRender = useRef(true);
 
@@ -129,11 +124,7 @@ export function Styles() {
           setModalKey(null);
         },
       };
-      if (modalKey === 0) {
-        modalsContext.pushModals([modal]);
-      } else {
-        modalsContext.swapActiveModal(modal);
-      }
+      modalsContext.swapActiveModal(modal);
       firstModalRender.current = false;
     } else {
       firstModalRender.current = true;

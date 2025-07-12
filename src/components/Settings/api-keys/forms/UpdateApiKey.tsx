@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useInsertionEffect } from 'react';
 import { AuthContextType, ValidatedInputState } from '../../../../types';
 import { ApiKey, UpdateApiKeyFunc } from '../../../../types/gallery/types';
 import { defaultValidatedInputState } from '../../../../utils/useValidatedInput';
@@ -23,17 +23,32 @@ export function UpdateApiKey({
   apiKey,
   updateApiKeyFunc,
 }: UpdateApiKeyProps) {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [name, setName] = useState<ValidatedInputState<string>>({
-    ...defaultValidatedInputState<string>(apiKey.name),
-  });
+  function getNameDefault() {
+    return defaultValidatedInputState<string>(apiKey.name);
+  }
+  function getExpiryDefault() {
+    return defaultValidatedInputState<Date | null>(
+      apiKey.expiry ? new Date(apiKey.expiry) : null
+    );
+  }
+
+  const [name, setName] = useState<ValidatedInputState<string>>(
+    getNameDefault()
+  );
+  const [expiry, setExpiry] = useState<ValidatedInputState<Date | null>>(
+    getExpiryDefault()
+  );
+
+  useEffect(() => {
+    setName(getNameDefault());
+    setExpiry(getExpiryDefault());
+  }, [apiKey]);
+
   const [nameModified, setNameModified] = useState<boolean>(false);
-  const [expiry, setExpiry] = useState<ValidatedInputState<Date | null>>({
-    ...defaultValidatedInputState<Date | null>(new Date(apiKey.expiry)),
-  });
   const [expiryModified, setExpiryModified] = useState<boolean>(false);
   const [modified, setModified] = useState<boolean>(false);
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [updateApiKeyInputStatus, setUpdateApiKeyInputStatus] =
     useState<ValidatedInputState<any>['status']>('loading');
 
@@ -81,9 +96,9 @@ export function UpdateApiKey({
         }
         setLoading(false);
       }}
-      className="flex flex-col h-full"
+      className="flex flex-col flex-1"
     >
-      <fieldset className="flex flex-col space-y-4">
+      <fieldset className="flex flex-col flex-1 space-y-4">
         <section className="space-y-2">
           <label htmlFor="api-key-name">Name</label>
           <ValidatedInputString

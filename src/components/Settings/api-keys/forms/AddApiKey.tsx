@@ -52,15 +52,15 @@ export function AddApiKey({
     checkAvailability: true,
     checkValidity: true,
     isAvailable: async (state) => {
-      const { data } = await getIsApiKeyAvailable.request({
+      const { response, data } = await getIsApiKeyAvailable.request({
         params: {
           query: {
             name: state.name.value,
           },
         },
       });
-      if (data !== undefined && data.available === true) {
-        return true;
+      if (response.ok && data !== undefined) {
+        return data.available;
       } else {
         return false;
       }

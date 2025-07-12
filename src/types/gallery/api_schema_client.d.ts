@@ -1266,6 +1266,10 @@ export interface components {
             api_key_count: number;
             /** Api Keys */
             api_keys: components["schemas"]["ApiKeyPrivate"][];
+            /** Api Key Scopes */
+            api_key_scopes: {
+                [key: string]: number[];
+            };
         };
         /** SettingsPageResponse */
         SettingsPageResponse: {

@@ -35,6 +35,7 @@ export type SelectedIndex = number | null;
 
 export interface ApiKeyViewProps {
   selectedIndex: SelectedIndex;
+  apiKeyCount: number;
   setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndex>>;
   apiKey: ApiKey;
   scopeIds: Set<ScopeID>;

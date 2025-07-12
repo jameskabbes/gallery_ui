@@ -231,6 +231,16 @@ interface Properties25 {
   auth: Schema;
   api_key_count: Schema5;
   api_keys: Schema4;
+  api_key_scopes: Apikeyscopes;
+}
+interface Apikeyscopes {
+  additionalProperties: AdditionalProperties;
+  type: string;
+  title: string;
+}
+interface AdditionalProperties {
+  items: AnyOf2;
+  type: string;
 }
 interface RequestMagicLinkSMSRequest {
   properties: Properties24;
