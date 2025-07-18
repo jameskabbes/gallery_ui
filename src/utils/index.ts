@@ -31,3 +31,27 @@ export function convertPathToAbsolute(rootDir: string, a: string): string {
     return path.resolve(rootDir, a);
   }
 }
+
+export function deepMerge<T extends object, U extends object>(
+  target: T,
+  source: U
+): T & U {
+  const output = { ...target } as T & U;
+
+  for (const key of Object.keys(source)) {
+    const targetValue = (target as any)[key];
+    const sourceValue = (source as any)[key];
+
+    if (isObject(targetValue) && isObject(sourceValue)) {
+      (output as any)[key] = deepMerge(targetValue, sourceValue);
+    } else {
+      (output as any)[key] = sourceValue;
+    }
+  }
+
+  return output;
+}
+
+export function isObject(value: any): boolean {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
