@@ -383,7 +383,8 @@ export type PermissionLevelId = number;
 export type UserRoleName = string;
 export type UserRoleId = number;
 
-export interface SharedConfig {
+export interface GeneratedSharedConfig {
+  ENV: string;
   BACKEND_URL: string;
   FRONTEND_URL: string;
   AUTH_KEY: string;
@@ -399,20 +400,18 @@ export interface SharedConfig {
 }
 
 interface ViteConfig {
-  server: {
-    port: number;
-    host: boolean;
-  };
+  server: any;
 }
 
-export interface FrontendConfig {
+export type FrontendConfig = Partial<{
   VITE: ViteConfig;
   OPENAPI_SCHEMA_PATHS: {
     gallery: string;
   };
-}
+}>;
 
 export interface Config {
+  env: string;
   backendUrl: string;
   frontendUrl: string;
   vite: ViteConfig;
@@ -433,7 +432,17 @@ export interface Config {
   permissionLevelIdMapping: Record<PermissionLevelId, PermissionLevelName>;
   userRoleNameMapping: Record<UserRoleName, UserRoleId>;
   userRoleIdMapping: Record<UserRoleId, UserRoleName>;
-  userRoleScopes: Record<UserRoleName, ScopeName[]>;
+  userRoleScopes: Record<UserRoleName, Set<ScopeName>>;
   otpLength: number;
   googleClientId: string;
 }
+
+export interface EnvVarMapping {
+  env: 'ARBOR_IMAGO_ENV';
+  configDir: 'ARBOR_IMAGO_CONFIG_DIR';
+  envPath: 'ARBOR_IMAGO_ENV_PATH';
+  frontendConfigPath: 'ARBOR_IMAGO_FRONTEND_CONFIG_PATH';
+  generatedSharedConfigPath: 'ARBOR_IMAGO_GENERATED_SHARED_CONFIG_PATH';
+}
+
+export type EnvVar = EnvVarMapping[keyof EnvVarMapping];

@@ -222,7 +222,7 @@ export function ApiKeys({ authContext, toastContext }: ApiKeyProps) {
         return;
       }
 
-      const scopeIds = scopeNames.map(
+      const scopeIds = Array.from(scopeNames).map(
         (scopeName: string) => config.scopeNameMapping[scopeName]
       );
 

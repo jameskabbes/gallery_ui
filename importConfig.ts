@@ -1,30 +1,40 @@
-import { Config, SharedConfig, FrontendConfig } from './src/types';
+import {
+  Config,
+  GeneratedSharedConfig,
+  FrontendConfig,
+  EnvVar,
+  EnvVarMapping,
+} from './src/types';
 import { GalleryApiSchema } from './src/types/gallery/api_schema';
 
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import yaml, { load } from 'js-yaml';
 import os from 'os';
 import { warn } from 'console';
+import dotenv from 'dotenv';
+import { convertPathToAbsolute, loadObjectFromFile } from './src/utils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const exampleFrontendConfigPath = path.join(
-  __dirname,
-  'src',
-  'examples',
-  'config',
-  'frontend.yaml'
-);
-const appName = 'arbor_imago';
-const exampleSharedConfigFilename = 'shared.yaml';
+const envVarMapping: EnvVarMapping = {
+  env: 'ARBOR_IMAGO_ENV',
+  configDir: 'ARBOR_IMAGO_CONFIG_DIR',
+  envPath: 'ARBOR_IMAGO_ENV_PATH',
+  frontendConfigPath: 'ARBOR_IMAGO_FRONTEND_CONFIG_PATH',
+  generatedSharedConfigPath: 'ARBOR_IMAGO_GENERATED_SHARED_CONFIG_PATH',
+};
 
-const _frontendConfigPath = process.env.FRONTEND_CONFIG_PATH || null;
-const _sharedConfigPath = process.env.SHARED_CONFIG_PATH || null;
-const _appEnv = process.env.APP_ENV || null;
-const _configEnvDir = process.env.CONFIG_ENV_DIR || null;
+const envEnv = process.env.ARBOR_IMAGO_ENV;
+const envConfigDir = process.env.ARBOR_IMAGO_CONFIG_DIR;
+const envEnvPath = process.env.ARBOR_IMAGO_ENV_PATH;
+const envFrontendConfigPath = process.env.ARBOR_IMAGO_FRONTEND_CONFIG_PATH;
+const envGeneratedSharedConfigPath =
+  process.env.ARBOR_IMAGO_GENERATED_SHARED_CONFIG_PATH;
+
+const appName = 'arbor_imago';
 
 function userConfigDir(appName: string): string {
   const home = os.homedir();
@@ -41,160 +51,170 @@ function userConfigDir(appName: string): string {
   }
 }
 
-function convertEnvPathToAbsolute(rootDir: string, a: string): string {
-  if (path.isAbsolute(a)) {
-    return a;
-  } else {
-    return path.resolve(rootDir, a);
-  }
-}
+// ENV
+let env = envEnv === undefined ? 'local' : envEnv;
 
-function processExplicitConfigPath(configPath: string | null): string | null {
-  if (configPath === null) {
-    return null;
-  } else {
-    const absPath = convertEnvPathToAbsolute(process.cwd(), configPath);
+// CONFIG_DIR
+let configDir =
+  envConfigDir === undefined
+    ? path.join(userConfigDir(appName), env)
+    : convertPathToAbsolute(process.cwd(), envConfigDir);
 
-    if (!fs.existsSync(absPath)) {
-      throw new Error(
-        `Config path ${absPath} does not exist. Please create it or specify a different one.`
-      );
-    }
+// ENV_PATH
+const envPath =
+  envEnvPath === undefined
+    ? path.join(configDir, '.env')
+    : convertPathToAbsolute(process.cwd(), envEnvPath);
 
-    return absPath;
-  }
-}
+const dotenv_values = dotenv.config({ path: envPath }); // Load environment variables from .env file
 
-let frontendConfigPath = processExplicitConfigPath(_frontendConfigPath);
-let sharedConfigPath = processExplicitConfigPath(_sharedConfigPath);
-
-if (frontendConfigPath === null || sharedConfigPath === null) {
-  let configEnvDir: string;
-
-  if (_configEnvDir != null) {
-    configEnvDir = convertEnvPathToAbsolute(process.cwd(), _configEnvDir);
-  } else {
-    const configDir = userConfigDir(appName);
-    if (_appEnv != null) {
-      configEnvDir = path.join(configDir, _appEnv);
-    } else {
-      configEnvDir = path.join(configDir, 'dev');
-      warn(
-        'Neither APP_ENV nor CONFIG_ENV_DIR is set. Defaulting to dev environment.'
-      );
-    }
-  }
-
-  if (!fs.existsSync(configEnvDir)) {
-    fs.mkdirSync(configEnvDir, { recursive: true });
-    warn(`Config directory ${configEnvDir} does not exist. Creating it.`);
-  }
-
-  if (frontendConfigPath === null) {
-    frontendConfigPath = path.join(
-      configEnvDir,
-      path.basename(exampleFrontendConfigPath)
+if (dotenv_values.parsed !== undefined) {
+  // prohibit settings .env path variable
+  if (envVarMapping['envPath'] in dotenv_values.parsed) {
+    throw new Error(
+      `Setting environment variable ${envVarMapping['envPath']} in .env file is not supported. Remove it from the file ${envPath} `
     );
-    if (!fs.existsSync(frontendConfigPath)) {
-      fs.copyFileSync(exampleFrontendConfigPath, frontendConfigPath);
-      warn(
-        `Frontend config file ${frontendConfigPath} does not exist. Creating it.`
-      );
-    }
   }
 
-  if (sharedConfigPath === null) {
-    sharedConfigPath = path.join(configEnvDir, exampleSharedConfigFilename);
-    if (!fs.existsSync(sharedConfigPath)) {
+  // when to prohibit setting env from the .env file?
+  const _env = dotenv_values.parsed[envVarMapping['env']];
+  if (_env !== undefined) {
+    function _raise() {
       throw new Error(
-        `Shared config file ${sharedConfigPath} does not exist. Please create it or specify a different location. Example file is found in the backend repository`
+        `Mismatched environment variable ${envVarMapping['env']} values provided as 1) environment variable and 2) in the env file ${envPath}`
       );
     }
+    if (envEnv !== undefined && envEnv !== _env) {
+      _raise();
+    }
+
+    if (
+      envEnv === undefined &&
+      envConfigDir === undefined &&
+      envEnvPath === undefined
+    ) {
+      _raise();
+    }
+    env = _env;
+  }
+
+  // when to prohibit settings configDir from the .env file?
+  const _configDir = dotenv_values.parsed[envVarMapping['configDir']];
+  if (_configDir !== undefined) {
+    function _raise() {
+      throw new Error(
+        `Mismatched environment variable ${envVarMapping['configDir']} values provided as 1) environment variable and 2) in the env file ${envPath}`
+      );
+    }
+    if (envConfigDir !== undefined && envConfigDir !== _configDir) {
+      _raise();
+    }
+
+    if (
+      envConfigDir === undefined &&
+      envEnv === undefined &&
+      envEnvPath === undefined
+    ) {
+      _raise();
+    }
+    configDir = convertPathToAbsolute(process.cwd(), _configDir);
   }
 }
 
-function loadSharedConfig(): SharedConfig {
-  const file = fs.readFileSync(sharedConfigPath!, 'utf8');
-  return yaml.load(file) as SharedConfig;
+const frontendConfigPath =
+  envFrontendConfigPath === undefined
+    ? path.join(configDir, 'frontend.json')
+    : convertPathToAbsolute(process.cwd(), envFrontendConfigPath);
+
+const generatedSharedConfigPath =
+  envGeneratedSharedConfigPath === undefined
+    ? path.join(configDir, 'shared.json')
+    : convertPathToAbsolute(process.cwd(), envGeneratedSharedConfigPath);
+
+const frontendConfig = loadObjectFromFile(frontendConfigPath) as FrontendConfig;
+const generatedSharedConfig = loadObjectFromFile(
+  generatedSharedConfigPath
+) as GeneratedSharedConfig;
+
+// now make sure the shared env matches
+if (generatedSharedConfig.ENV !== env) {
+  throw new Error(
+    `Mismatched environment variable ${envVarMapping['env']} values provided as 1) environment variable and 2) in the generated_shared config file ${generatedSharedConfigPath}. `
+  );
 }
 
-const sharedConfig = loadSharedConfig();
+let apiSchemaPaths: Config['apiSchemaPaths'] = {
+  gallery: '../gallery_api_schema.json',
+};
 
-function loadFrontendConfig(): FrontendConfig {
-  const file = fs.readFileSync(frontendConfigPath!, 'utf8');
-  return yaml.load(file) as FrontendConfig;
-}
+apiSchemaPaths = {
+  ...apiSchemaPaths,
+  ...(frontendConfig.OPENAPI_SCHEMA_PATHS ?? {}),
+};
 
-const frontendConfig = loadFrontendConfig();
+// Convert all values to absolute paths
+apiSchemaPaths = Object.fromEntries(
+  Object.entries(apiSchemaPaths).map(([key, value]) => [
+    key,
+    convertPathToAbsolute(process.cwd(), value),
+  ])
+) as Config['apiSchemaPaths'];
 
-const apiSchemaPaths = Object.entries(
-  frontendConfig.OPENAPI_SCHEMA_PATHS
-).reduce(
-  (
-    acc: Config['apiSchemaPaths'] & {
-      [key: string]: Config['apiSchemaPaths'][keyof Config['apiSchemaPaths']];
-    },
-    [key, value]
-  ) => {
-    acc[key] = convertEnvPathToAbsolute(process.cwd(), value);
-    return acc;
-  },
-  { gallery: '' }
-);
+let apiSchemas: Config['apiSchemas'] = {
+  gallery: loadObjectFromFile(apiSchemaPaths['gallery']) as GalleryApiSchema,
+};
 
-const apiSchemas = Object.entries(frontendConfig.OPENAPI_SCHEMA_PATHS).reduce(
-  (
-    acc: Config['apiSchemas'] & {
-      [key: string]: Config['apiSchemas'][keyof Config['apiSchemas']];
-    },
-    [key, value]
-  ) => {
-    acc[key] = JSON.parse(fs.readFileSync(value, 'utf8'));
-    return acc;
-  },
-  { gallery: {} as GalleryApiSchema }
-);
+// vite
+let vite: Config['vite'] = {
+  server: {},
+};
 
 export const importedConfig: Config = {
-  backendUrl: sharedConfig.BACKEND_URL,
-  frontendUrl: sharedConfig.FRONTEND_URL,
-  authKey: sharedConfig.AUTH_KEY,
-  headerKeys: sharedConfig.HEADER_KEYS,
-  frontendRoutes: sharedConfig.FRONTEND_ROUTES,
-  scopeNameMapping: sharedConfig.SCOPE_NAME_MAPPING,
-  scopeIdMapping: Object.entries(sharedConfig.SCOPE_NAME_MAPPING).reduce(
-    (acc: Config['scopeIdMapping'], [key, value]) => {
-      acc[value] = key;
-      return acc;
-    },
-    {} as {}
-  ),
-  visibilityLevelNameMapping: sharedConfig.VISIBILITY_LEVEL_NAME_MAPPING,
+  env: env,
+  backendUrl: generatedSharedConfig.BACKEND_URL,
+  frontendUrl: generatedSharedConfig.FRONTEND_URL,
+  vite: vite,
+  apiSchemaPaths,
+  apiSchemas,
+  authKey: generatedSharedConfig.AUTH_KEY,
+  headerKeys: generatedSharedConfig.HEADER_KEYS,
+  frontendRoutes: generatedSharedConfig.FRONTEND_ROUTES,
+  scopeNameMapping: generatedSharedConfig.SCOPE_NAME_MAPPING,
+  scopeIdMapping: Object.entries(
+    generatedSharedConfig.SCOPE_NAME_MAPPING
+  ).reduce((acc: Config['scopeIdMapping'], [key, value]) => {
+    acc[value] = key;
+    return acc;
+  }, {} as {}),
+  visibilityLevelNameMapping:
+    generatedSharedConfig.VISIBILITY_LEVEL_NAME_MAPPING,
   visibilityLevelIdMapping: Object.entries(
-    sharedConfig.VISIBILITY_LEVEL_NAME_MAPPING
+    generatedSharedConfig.VISIBILITY_LEVEL_NAME_MAPPING
   ).reduce((acc: Config['visibilityLevelIdMapping'], [key, value]) => {
     acc[value] = key;
     return acc;
   }, {} as {}),
-  permissionLevelNameMapping: sharedConfig.PERMISSION_LEVEL_NAME_MAPPING,
+  permissionLevelNameMapping:
+    generatedSharedConfig.PERMISSION_LEVEL_NAME_MAPPING,
   permissionLevelIdMapping: Object.entries(
-    sharedConfig.PERMISSION_LEVEL_NAME_MAPPING
+    generatedSharedConfig.PERMISSION_LEVEL_NAME_MAPPING
   ).reduce((acc: Config['permissionLevelIdMapping'], [key, value]) => {
     acc[value] = key;
     return acc;
   }, {} as {}),
-  userRoleNameMapping: sharedConfig.USER_ROLE_NAME_MAPPING,
-  userRoleIdMapping: Object.entries(sharedConfig.USER_ROLE_NAME_MAPPING).reduce(
-    (acc: Config['userRoleIdMapping'], [key, value]) => {
-      acc[value] = key;
-      return acc;
-    },
-    {} as {}
-  ),
-  userRoleScopes: sharedConfig.USER_ROLE_SCOPES,
-  otpLength: sharedConfig.OTP_LENGTH,
-  googleClientId: sharedConfig.GOOGLE_CLIENT_ID,
-  vite: frontendConfig.VITE,
-  apiSchemaPaths,
-  apiSchemas,
+  userRoleNameMapping: generatedSharedConfig.USER_ROLE_NAME_MAPPING,
+  userRoleIdMapping: Object.entries(
+    generatedSharedConfig.USER_ROLE_NAME_MAPPING
+  ).reduce((acc: Config['userRoleIdMapping'], [key, value]) => {
+    acc[value] = key;
+    return acc;
+  }, {} as {}),
+  userRoleScopes: Object.fromEntries(
+    Object.entries(generatedSharedConfig.USER_ROLE_SCOPES).map(([key, arr]) => [
+      key,
+      new Set(arr),
+    ])
+  ) as Config['userRoleScopes'],
+  otpLength: generatedSharedConfig.OTP_LENGTH,
+  googleClientId: generatedSharedConfig.GOOGLE_CLIENT_ID,
 };
