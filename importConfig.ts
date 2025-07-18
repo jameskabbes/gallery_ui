@@ -14,10 +14,16 @@ import yaml, { load } from 'js-yaml';
 import os from 'os';
 import { warn } from 'console';
 import dotenv from 'dotenv';
-import { convertPathToAbsolute, loadObjectFromFile } from './src/utils';
+import {
+  convertPathToAbsolute,
+  deepMerge,
+  loadObjectFromFile,
+} from './src/utils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const appName = 'arbor_imago';
 
 const envVarMapping: EnvVarMapping = {
   env: 'ARBOR_IMAGO_ENV',
@@ -33,8 +39,6 @@ const envEnvPath = process.env.ARBOR_IMAGO_ENV_PATH;
 const envFrontendConfigPath = process.env.ARBOR_IMAGO_FRONTEND_CONFIG_PATH;
 const envGeneratedSharedConfigPath =
   process.env.ARBOR_IMAGO_GENERATED_SHARED_CONFIG_PATH;
-
-const appName = 'arbor_imago';
 
 function userConfigDir(appName: string): string {
   const home = os.homedir();
@@ -63,7 +67,7 @@ let configDir =
 // ENV_PATH
 const envPath =
   envEnvPath === undefined
-    ? path.join(configDir, '.env')
+    ? path.join(configDir, 'frontend.env')
     : convertPathToAbsolute(process.cwd(), envEnvPath);
 
 const dotenv_values = dotenv.config({ path: envPath }); // Load environment variables from .env file
@@ -77,14 +81,14 @@ if (dotenv_values.parsed !== undefined) {
   }
 
   // when to prohibit setting env from the .env file?
-  const _env = dotenv_values.parsed[envVarMapping['env']];
-  if (_env !== undefined) {
+  const newEnv = dotenv_values.parsed[envVarMapping['env']];
+  if (newEnv !== undefined) {
     function _raise() {
       throw new Error(
         `Mismatched environment variable ${envVarMapping['env']} values provided as 1) environment variable and 2) in the env file ${envPath}`
       );
     }
-    if (envEnv !== undefined && envEnv !== _env) {
+    if (envEnv !== undefined && envEnv !== newEnv) {
       _raise();
     }
 
@@ -95,18 +99,18 @@ if (dotenv_values.parsed !== undefined) {
     ) {
       _raise();
     }
-    env = _env;
+    env = newEnv;
   }
 
   // when to prohibit settings configDir from the .env file?
-  const _configDir = dotenv_values.parsed[envVarMapping['configDir']];
-  if (_configDir !== undefined) {
+  const newConfigDir = dotenv_values.parsed[envVarMapping['configDir']];
+  if (newConfigDir !== undefined) {
     function _raise() {
       throw new Error(
         `Mismatched environment variable ${envVarMapping['configDir']} values provided as 1) environment variable and 2) in the env file ${envPath}`
       );
     }
-    if (envConfigDir !== undefined && envConfigDir !== _configDir) {
+    if (envConfigDir !== undefined && envConfigDir !== newConfigDir) {
       _raise();
     }
 
@@ -117,7 +121,7 @@ if (dotenv_values.parsed !== undefined) {
     ) {
       _raise();
     }
-    configDir = convertPathToAbsolute(process.cwd(), _configDir);
+    configDir = convertPathToAbsolute(process.cwd(), newConfigDir);
   }
 }
 
@@ -128,10 +132,11 @@ const frontendConfigPath =
 
 const generatedSharedConfigPath =
   envGeneratedSharedConfigPath === undefined
-    ? path.join(configDir, 'shared.json')
+    ? path.join(configDir, 'generated_shared.json')
     : convertPathToAbsolute(process.cwd(), envGeneratedSharedConfigPath);
 
 const frontendConfig = loadObjectFromFile(frontendConfigPath) as FrontendConfig;
+
 const generatedSharedConfig = loadObjectFromFile(
   generatedSharedConfigPath
 ) as GeneratedSharedConfig;
@@ -169,6 +174,43 @@ let vite: Config['vite'] = {
   server: {},
 };
 
+vite = deepMerge(vite, frontendConfig.VITE ?? {});
+
+const scopeIdMapping = Object.entries(
+  generatedSharedConfig.SCOPE_NAME_MAPPING
+).reduce((acc: Config['scopeIdMapping'], [key, value]) => {
+  acc[value] = key;
+  return acc;
+}, {} as {});
+
+const visibilityLevelIdMapping = Object.entries(
+  generatedSharedConfig.VISIBILITY_LEVEL_NAME_MAPPING
+).reduce((acc: Config['visibilityLevelIdMapping'], [key, value]) => {
+  acc[value] = key;
+  return acc;
+}, {} as {});
+
+const permissionLevelIdMapping = Object.entries(
+  generatedSharedConfig.PERMISSION_LEVEL_NAME_MAPPING
+).reduce((acc: Config['permissionLevelIdMapping'], [key, value]) => {
+  acc[value] = key;
+  return acc;
+}, {} as {});
+
+const userRoleIdMapping = Object.entries(
+  generatedSharedConfig.USER_ROLE_NAME_MAPPING
+).reduce((acc: Config['userRoleIdMapping'], [key, value]) => {
+  acc[value] = key;
+  return acc;
+}, {} as {});
+
+const userRoleScopes = Object.fromEntries(
+  Object.entries(generatedSharedConfig.USER_ROLE_SCOPES).map(([key, arr]) => [
+    key,
+    new Set(arr),
+  ])
+) as Config['userRoleScopes'];
+
 export const importedConfig: Config = {
   env: env,
   backendUrl: generatedSharedConfig.BACKEND_URL,
@@ -180,41 +222,16 @@ export const importedConfig: Config = {
   headerKeys: generatedSharedConfig.HEADER_KEYS,
   frontendRoutes: generatedSharedConfig.FRONTEND_ROUTES,
   scopeNameMapping: generatedSharedConfig.SCOPE_NAME_MAPPING,
-  scopeIdMapping: Object.entries(
-    generatedSharedConfig.SCOPE_NAME_MAPPING
-  ).reduce((acc: Config['scopeIdMapping'], [key, value]) => {
-    acc[value] = key;
-    return acc;
-  }, {} as {}),
+  scopeIdMapping,
   visibilityLevelNameMapping:
     generatedSharedConfig.VISIBILITY_LEVEL_NAME_MAPPING,
-  visibilityLevelIdMapping: Object.entries(
-    generatedSharedConfig.VISIBILITY_LEVEL_NAME_MAPPING
-  ).reduce((acc: Config['visibilityLevelIdMapping'], [key, value]) => {
-    acc[value] = key;
-    return acc;
-  }, {} as {}),
+  visibilityLevelIdMapping,
   permissionLevelNameMapping:
     generatedSharedConfig.PERMISSION_LEVEL_NAME_MAPPING,
-  permissionLevelIdMapping: Object.entries(
-    generatedSharedConfig.PERMISSION_LEVEL_NAME_MAPPING
-  ).reduce((acc: Config['permissionLevelIdMapping'], [key, value]) => {
-    acc[value] = key;
-    return acc;
-  }, {} as {}),
+  permissionLevelIdMapping,
   userRoleNameMapping: generatedSharedConfig.USER_ROLE_NAME_MAPPING,
-  userRoleIdMapping: Object.entries(
-    generatedSharedConfig.USER_ROLE_NAME_MAPPING
-  ).reduce((acc: Config['userRoleIdMapping'], [key, value]) => {
-    acc[value] = key;
-    return acc;
-  }, {} as {}),
-  userRoleScopes: Object.fromEntries(
-    Object.entries(generatedSharedConfig.USER_ROLE_SCOPES).map(([key, arr]) => [
-      key,
-      new Set(arr),
-    ])
-  ) as Config['userRoleScopes'],
+  userRoleIdMapping,
+  userRoleScopes,
   otpLength: generatedSharedConfig.OTP_LENGTH,
   googleClientId: generatedSharedConfig.GOOGLE_CLIENT_ID,
 };
